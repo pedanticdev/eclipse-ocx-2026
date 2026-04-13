@@ -37,7 +37,7 @@ public class DebugResource {
 
             EmbeddingSearchRequest request = EmbeddingSearchRequest.builder()
                     .queryEmbedding(queryEmbedding)
-                    .maxResults(5)
+                    .maxResults(40)
                     .minScore(0.0)
                     .build();
 

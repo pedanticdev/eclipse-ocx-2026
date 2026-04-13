@@ -8,14 +8,16 @@ import dev.langchain4j.data.document.DocumentSplitter;
 import dev.langchain4j.data.document.Metadata;
 import dev.langchain4j.data.document.parser.TextDocumentParser;
 import dev.langchain4j.data.document.splitter.DocumentSplitters;
+import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.store.embedding.EmbeddingStore;
-import dev.langchain4j.store.embedding.EmbeddingStoreIngestor;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.Initialized;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
+import jakarta.json.bind.Jsonb;
+import jakarta.json.bind.JsonbBuilder;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
@@ -30,6 +32,9 @@ import java.util.logging.Logger;
 public class DataLoader {
 
     private static final Logger LOG = Logger.getLogger(DataLoader.class.getName());
+    private static final Jsonb jsonb = JsonbBuilder.create();
+
+    public record TalkDocument(String title, String speaker, String company, String track, String time, String abstractText) {}
 
     @PersistenceContext
     private EntityManager em;
@@ -44,14 +49,12 @@ public class DataLoader {
     public void init(@Observes @Initialized(ApplicationScoped.class) Object event) {
         LOG.info("Starting data ingestion...");
 
-        List<Document> documents = new ArrayList<>();
+        List<Document> talkDocs = loadConferenceTalks();
+        List<Document> jakartaDocs = loadJakartaDocs();
 
-        documents.addAll(loadConferenceTalks());
-        documents.addAll(loadJakartaDocs());
+        ingest(talkDocs, jakartaDocs);
 
-        ingest(documents);
-
-        LOG.info("Data ingestion complete. " + documents.size() + " documents loaded.");
+        LOG.info("Data ingestion complete. " + (talkDocs.size() + jakartaDocs.size()) + " documents loaded.");
     }
 
     private List<Document> loadConferenceTalks() {
@@ -64,11 +67,10 @@ public class DataLoader {
 
         return talks.stream()
                 .map(talk -> Document.from(
-                        "Talk: " + talk.getTitle() + "\n"
-                                + "Speaker: " + talk.getSpeakerName() + " (" + talk.getSpeakerCompany() + ")\n"
-                                + "Track: " + talk.getTrack() + "\n"
-                                + "Time: " + talk.getTimeSlot() + "\n"
-                                + "Abstract: " + talk.getAbstractText(),
+                        talk.getTitle() + ". "
+                                + talk.getSpeakerName() + " from " + talk.getSpeakerCompany() + " presents on "
+                                + talk.getTrack() + " at " + talk.getTimeSlot() + ". "
+                                + talk.getAbstractText(),
                         new Metadata(Map.of("source", "conference-talk", "title", talk.getTitle()))
                 ))
                 .toList();
@@ -92,16 +94,25 @@ public class DataLoader {
         return documents;
     }
 
-    private void ingest(List<Document> documents) {
-        DocumentSplitter splitter = DocumentSplitters.recursive(300, 50);
+    private void ingest(List<Document> talkDocs, List<Document> jakartaDocs) {
+        List<TextSegment> segments = new ArrayList<>();
 
-        EmbeddingStoreIngestor ingestor = EmbeddingStoreIngestor.builder()
-                .embeddingStore(embeddingStore)
-                .embeddingModel(embeddingModel)
-                .documentSplitter(splitter)
-                .build();
+        // Conference talks are short - embed each one whole to preserve context
+        for (Document doc : talkDocs) {
+            segments.add(TextSegment.from(doc.text(), doc.metadata()));
+        }
 
-        ingestor.ingest(documents);
+        // Jakarta docs are long - split with generous overlap to retain context
+        DocumentSplitter splitter = DocumentSplitters.recursive(500, 100);
+        for (Document doc : jakartaDocs) {
+            segments.addAll(splitter.split(doc));
+        }
+
+        LOG.info("Embedding " + segments.size() + " segments...");
+        List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
+
+        embeddingStore.addAll(embeddings, segments);
+        LOG.info("Stored " + embeddings.size() + " embeddings in PgVector.");
     }
 
     private void seedDatabase() {

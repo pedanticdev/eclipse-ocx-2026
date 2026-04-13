@@ -26,7 +26,14 @@
             <version>11.0.0</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.eclipse.microprofile</groupId>
+            <artifactId>microprofile</artifactId>
+            <version>6.1</version>
+            <scope>provided</scope>
 
+            <type>pom</type>
+        </dependency>
         <!-- LangChain4j CDI portable extension for Payara -->
         <dependency>
             <groupId>dev.langchain4j.cdi</groupId>
