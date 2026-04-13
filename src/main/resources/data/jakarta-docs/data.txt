@@ -1,0 +1,31 @@
+Jakarta Data 1.0
+
+Jakarta Data provides a standardized repository abstraction for data access in Java applications, supporting both relational and NoSQL databases.
+
+Core Concepts:
+- Repository: An interface annotated with @Repository that defines data access operations. The Jakarta Data provider generates the implementation at runtime.
+- Built-in Supertypes: Extend BasicRepository<Entity, Id> for common CRUD operations (save, delete, findById, findAll). Extend CrudRepository for explicit insert and update methods.
+- Entity Classes: Standard JPA entities (@Entity) or Jakarta NoSQL entities (@jakarta.nosql.Entity) serve as the data model.
+- Automatic Query Methods: Annotate methods with @Find to generate queries from method parameters. Parameter names match entity field names.
+- Annotated Query Methods: Use @Query with JDQL (Jakarta Data Query Language) for custom queries. JDQL is a subset of JPQL designed to work across database types.
+
+JDQL (Jakarta Data Query Language):
+A simplified query language for @Query annotations. Example: @Query("where title like :pattern order by title asc"). Supports where, order by, select, and basic operators. Named parameters use :name syntax.
+
+Lifecycle Annotations:
+- @Insert: Insert a new entity.
+- @Update: Update an existing entity.
+- @Delete: Delete an entity (also works as automatic query for bulk deletes).
+- @Save: Insert or update (upsert semantics).
+
+Pagination:
+Jakarta Data supports both offset-based (PageRequest.ofPage(1).size(20)) and cursor-based (CursoredPage) pagination. Use Page<T> as return type for offset pagination and CursoredPage<T> for cursor-based.
+
+CDI Integration:
+Repositories are CDI beans. Inject them with @Inject. The Jakarta Data provider uses CDI extensions to discover @Repository interfaces and generate implementations.
+
+Sorting:
+Use Sort.asc("fieldName") or Sort.desc("fieldName") for dynamic sorting. Use @OrderBy annotation for static sorting. The static metamodel provides type-safe sorting with _Entity.field.asc().
+
+Best Practices:
+Keep repository interfaces focused on a single entity. Use @Find for simple queries. Use @Query with JDQL for complex conditions. Avoid mixing Jakarta Persistence and Jakarta NoSQL entity annotations on the same class.

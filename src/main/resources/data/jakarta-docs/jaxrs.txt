@@ -1,0 +1,32 @@
+Jakarta RESTful Web Services (JAX-RS) 4.0
+
+JAX-RS is the standard API for building RESTful web services in Jakarta EE.
+
+Core Concepts:
+- Resources: Classes annotated with @Path define REST resources. Methods handle HTTP requests.
+- HTTP Methods: @GET, @POST, @PUT, @DELETE, @PATCH map methods to HTTP verbs.
+- Path Parameters: @PathParam extracts values from the URL path.
+- Query Parameters: @QueryParam extracts values from query strings.
+- Form Parameters: @FormParam extracts values from form submissions (application/x-www-form-urlencoded).
+- Request/Response Bodies: @Consumes declares accepted content types. @Produces declares returned content types.
+
+Application Configuration:
+Extend jakarta.ws.rs.core.Application and annotate with @ApplicationPath to define the base URL path for all resources. Example: @ApplicationPath("/api") means all resources are accessible under /api/*.
+
+Entity Providers:
+JAX-RS includes built-in providers for common types: String, InputStream, byte[], StreamingOutput, and JSON (with JSON-B). Custom providers implement MessageBodyReader or MessageBodyWriter.
+
+Exception Handling:
+Map exceptions to HTTP responses using ExceptionMapper<T>. Example: map EntityNotFoundException to 404 Not Found.
+
+Filters and Interceptors:
+Use ContainerRequestFilter and ContainerResponseFilter to cross-cut concerns like logging, authentication, and CORS headers. Entity interceptors (ReaderInterceptor, WriterInterceptor) modify request/response bodies.
+
+Returning HTML:
+JAX-RS can return HTML directly. Use @Produces(MediaType.TEXT_HTML) and return a String containing HTML markup. This pairs well with HTMX for server-rendered fragments.
+
+HTMX Integration:
+HTMX sends HTTP requests and swaps HTML fragments into the page. JAX-RS endpoints return HTML fragments (not full pages). Use hx-post, hx-get, hx-target, and hx-swap attributes in your HTML to define interactions.
+
+Best Practices:
+Keep resources stateless. Use dependency injection for service dependencies. Return appropriate HTTP status codes. Use MediaType constants instead of string literals.

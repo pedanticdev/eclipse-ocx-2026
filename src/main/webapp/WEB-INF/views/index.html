@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eclipse OCX 2026 - Conference AI Assistant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;700;900&family=JetBrains+Mono:wght@400;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="/js/htmx.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Eclipse OCX 2026</h1>
+            <p class="subtitle">Conference AI Assistant</p>
+        </header>
+
+        <main>
+            <div class="chat-area">
+                <form hx-post="/api/chat" hx-target="#chat-messages" hx-swap="beforeend"
+                      hx-indicator="#loading" class="chat-form">
+                    <input type="text" name="question"
+                           placeholder="Ask about talks, speakers, or Jakarta EE..."
+                           required autofocus>
+                    <button type="submit">Ask</button>
+                </form>
+
+                <div id="loading" class="htmx-indicator">
+                    <div class="spinner"></div>
+                    <span>Thinking...</span>
+                </div>
+
+                <div id="chat-messages"></div>
+            </div>
+
+            <aside class="sidebar">
+                <h2>Sample Questions</h2>
+                <div class="sample-questions">
+                    <button hx-post="/api/chat"
+                            hx-vals='{"question": "What talks are about AI?"}'
+                            hx-target="#chat-messages" hx-swap="beforeend">
+                        What talks are about AI?
+                    </button>
+                    <button hx-post="/api/chat"
+                            hx-vals='{"question": "Who is speaking about virtual threads?"}'
+                            hx-target="#chat-messages" hx-swap="beforeend">
+                        Who is speaking about virtual threads?
+                    </button>
+                    <button hx-post="/api/chat"
+                            hx-vals='{"question": "Tell me about the Jakarta Data specification"}'
+                            hx-target="#chat-messages" hx-swap="beforeend">
+                        Tell me about Jakarta Data
+                    </button>
+                    <button hx-post="/api/chat"
+                            hx-vals='{"question": "What is CDI and how does it work?"}'
+                            hx-target="#chat-messages" hx-swap="beforeend">
+                        What is CDI?
+                    </button>
+                    <button hx-post="/api/chat"
+                            hx-vals='{"question": "Which talks would you recommend for a Java beginner?"}'
+                            hx-target="#chat-messages" hx-swap="beforeend">
+                        Talks for beginners?
+                    </button>
+                </div>
+            </aside>
+        </main>
+
+        <footer>
+            <p>Powered by Jakarta EE 11, CDI, LangChain4j, and Ollama</p>
+        </footer>
+    </div>
+</body>
+</html>
