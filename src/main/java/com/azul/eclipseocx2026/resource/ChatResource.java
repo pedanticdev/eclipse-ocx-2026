@@ -8,9 +8,15 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+import org.commonmark.node.Node;
+import org.commonmark.parser.Parser;
+import org.commonmark.renderer.html.HtmlRenderer;
 
 @Path("/chat")
 public class ChatResource {
+
+    private static final Parser PARSER = Parser.builder().build();
+    private static final HtmlRenderer RENDERER = HtmlRenderer.builder().build();
 
     @Inject
     private ConferenceChatService chatService;
@@ -24,12 +30,14 @@ public class ChatResource {
     }
 
     private String renderAnswer(String question, String answer) {
+        Node document = PARSER.parse(answer);
+        String html = RENDERER.render(document);
         return """
                 <div class="chat-message">
                     <div class="question">%s</div>
                     <div class="answer">%s</div>
                 </div>
-                """.formatted(escapeHtml(question), escapeHtml(answer));
+                """.formatted(escapeHtml(question), html);
     }
 
     private String escapeHtml(String text) {

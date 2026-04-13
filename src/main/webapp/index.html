@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eclipse OCX 2026 - Conference AI Assistant</title>
+    <title>Eclipse OCX 2026 - Jakarta EE AI Assistant</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;700;900&family=JetBrains+Mono:wght@400;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
@@ -14,15 +14,15 @@
     <div class="container">
         <header>
             <h1>Eclipse OCX 2026</h1>
-            <p class="subtitle">Conference AI Assistant</p>
+            <p class="subtitle">Jakarta EE AI Assistant</p>
         </header>
 
         <main>
             <div class="chat-area">
-                <form hx-post="/api/chat" hx-target="#chat-messages" hx-swap="beforeend"
+                <form hx-post="/api/chat" hx-target="#chat-messages" hx-swap="afterbegin"
                       hx-indicator="#loading" class="chat-form">
                     <input type="text" name="question"
-                           placeholder="Ask about talks, speakers, or Jakarta EE..."
+                           placeholder="Ask about Jakarta EE specifications and APIs..."
                            required autofocus>
                     <button type="submit">Ask</button>
                 </form>
@@ -37,31 +37,26 @@
 
             <aside class="sidebar">
                 <h2>Sample Questions</h2>
-                <div class="sample-questions">
-                    <button hx-post="/api/chat"
-                            hx-vals='{"question": "What talks are about AI?"}'
-                            hx-target="#chat-messages" hx-swap="beforeend">
-                        What talks are about AI?
-                    </button>
-                    <button hx-post="/api/chat"
-                            hx-vals='{"question": "Who is speaking about virtual threads?"}'
-                            hx-target="#chat-messages" hx-swap="beforeend">
-                        Who is speaking about virtual threads?
-                    </button>
-                    <button hx-post="/api/chat"
-                            hx-vals='{"question": "Tell me about the Jakarta Data specification"}'
-                            hx-target="#chat-messages" hx-swap="beforeend">
-                        Tell me about Jakarta Data
-                    </button>
+                <div class="sample-questions" hx-indicator="#loading">
                     <button hx-post="/api/chat"
                             hx-vals='{"question": "What is CDI and how does it work?"}'
-                            hx-target="#chat-messages" hx-swap="beforeend">
+                            hx-target="#chat-messages" hx-swap="afterbegin">
                         What is CDI?
                     </button>
                     <button hx-post="/api/chat"
-                            hx-vals='{"question": "Which talks would you recommend for a Java beginner?"}'
-                            hx-target="#chat-messages" hx-swap="beforeend">
-                        Talks for beginners?
+                            hx-vals='{"question": "Tell me about the Jakarta Data specification"}'
+                            hx-target="#chat-messages" hx-swap="afterbegin">
+                        Tell me about Jakarta Data
+                    </button>
+                    <button hx-post="/api/chat"
+                            hx-vals='{"question": "How does JPA handle entity relationships?"}'
+                            hx-target="#chat-messages" hx-swap="afterbegin">
+                        How does JPA handle relationships?
+                    </button>
+                    <button hx-post="/api/chat"
+                            hx-vals='{"question": "What is new in Jakarta Concurrency 3.1?"}'
+                            hx-target="#chat-messages" hx-swap="afterbegin">
+                        What's new in Concurrency 3.1?
                     </button>
                 </div>
             </aside>
