@@ -15,12 +15,9 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import javax.sql.DataSource;
 import java.time.Duration;
-import java.util.logging.Logger;
 
 @ApplicationScoped
 public class EmbeddingProducers {
-
-    Logger LOGGER = Logger.getLogger(EmbeddingProducers.class.getName());
 
     @Inject
     @ConfigProperty(name = "ollama.base.url", defaultValue = "http://localhost:11434")
@@ -44,10 +41,6 @@ public class EmbeddingProducers {
     @Produces
     @ApplicationScoped
     public ContentRetriever contentRetriever(EmbeddingStore<TextSegment> store, EmbeddingModel model) {
-        LOGGER.info("contentRetriever producer method called");
-        LOGGER.info(store.toString());
-        LOGGER.info(model.toString());
-
         return EmbeddingStoreContentRetriever.builder()
                         .embeddingStore(store)
                         .embeddingModel(model)

@@ -532,7 +532,7 @@
                         <li>Zero data leaves the JVM</li>
                         <li>No API costs. Ever.</li>
                         <li>No vendor dependencies</li>
-                        <li>Sub-millisecond inference on GPU</li>
+                        <li>No network round-trips to external APIs</li>
                         <li>Pure Java. No Python.</li>
                         <li>Deploys like any Jakarta EE app</li>
                     </ul>
@@ -540,7 +540,7 @@
             </div>
             <aside class="notes">
                 <p>Let's be honest about the typical AI integration pattern. You've got your nice Jakarta EE application, clean architecture, everything runs inside your network. Then someone says "we need AI." Next thing you know, you're sending user queries to an external API. Your data leaves your network. You're paying per token, which means your costs scale linearly with usage and you can't predict them. You're coupled to a vendor's API format, pricing model, and uptime. And somewhere in your stack, someone spun up a Python microservice just to talk to the LLM because the examples are all in Python.</p>
-                <p>Now look at the right side. What if the model ran inside your infrastructure? Zero data leaves your network because the inference happens on your hardware. No API costs because there's no API. No vendor lock-in because you're running an open-source model. Latency drops to single-digit milliseconds on GPU because there's no network hop. And it's pure Java. No Python runtime to manage, no pip dependency hell, no separate team to maintain the "AI service."</p>
+                <p>Now look at the right side. What if the model ran inside your infrastructure? Zero data leaves your network because the inference happens on your hardware. No API costs because there's no API. No vendor lock-in because you're running an open-source model. No network round-trips to external services. And it's pure Java. No Python runtime to manage, no pip dependency hell, no separate team to maintain the "AI service."</p>
                 <p>This isn't hypothetical. This is what we're going to build today.</p>
             </aside>
         </section>
@@ -865,30 +865,48 @@ public ContentRetriever contentRetriever(
         <!-- SLIDE: Step 4 - Data Ingestion -->
         <!-- ============================================================ -->
         <section>
-            <h3>Step 4: Ingest Documents on Startup</h3>
-            <pre><code class="language-java">@ApplicationScoped
-public class DataLoader {
+            <h3>Step 4: JPA Entities + Vector Embeddings</h3>
+            <div class="two-column">
+                <div>
+                    <h4>JPA Entity</h4>
+                    <pre><code class="language-java">@Entity
+@Table(name = "documents")
+public class DocumentEntity {
 
-    @Inject EmbeddingModel embeddingModel;
-    @Inject EmbeddingStore&lt;TextSegment&gt; embeddingStore;
-
-    void init(@Observes @Initialized(ApplicationScoped.class) Object event) {
-        List&lt;Document&gt; documents = loadJakartaDocs();
-        DocumentSplitter splitter = DocumentSplitters.recursive(500, 100);
-        List&lt;TextSegment&gt; segments = split(documents, splitter);
-
-        List&lt;Embedding&gt; embeddings = embeddingModel.embedAll(segments).content();
-        embeddingStore.addAll(embeddings, segments);
-    }
+  @Id @GeneratedValue(strategy = IDENTITY)
+  private Long id;
+  private String title;
+  private String source;
+  @Lob private String content;
+  private LocalDateTime createdAt;
 }</code></pre>
+                </div>
+                <div>
+                    <h4>Load &amp; Embed</h4>
+                    <pre><code class="language-java">@Transactional
+void init(@Observes @Initialized(...) Object e) {
+  // 1. Persist as JPA entities
+  List&lt;DocumentEntity&gt; docs =
+    persistDocuments();
+
+  // 2. Split &amp; embed into vectors
+  DocumentSplitter splitter =
+    DocumentSplitters.recursive(500, 100);
+  List&lt;TextSegment&gt; segments = split(docs);
+  List&lt;Embedding&gt; embeddings =
+    embeddingModel.embedAll(segments);
+  embeddingStore.addAll(embeddings, segments);
+}</code></pre>
+                </div>
+            </div>
             <div class="layers" style="margin-top: 15px;">
-                <p><span class="hl">CDI event observer</span> triggers ingestion when the application scope initializes. Documents are split into 500-character overlapping segments, embedded, and stored.</p>
+                <p><span class="hl">Same database.</span> JPA entities for structured queries. PgVector for semantic search. One DataSource, two access patterns.</p>
             </div>
             <aside class="notes">
-                <p>Step four. Data ingestion. When the CDI application scope initializes, this observer method fires. It loads Jakarta EE specification documents from the classpath, splits them into overlapping chunks of about 500 characters, generates embeddings for all chunks, and stores them in PgVector.</p>
-                <p>The DocumentSplitter uses recursive splitting, which means it tries to split on paragraph boundaries first, then sentence boundaries, then word boundaries. The 100-character overlap ensures that context isn't lost at chunk boundaries. A sentence that spans two chunks will appear in both, which improves retrieval quality.</p>
-                <p>In production, you wouldn't load from the classpath. You'd load from a database, or a file system, or an S3 bucket. LangChain4j has document loaders for all of those. The ingestion pattern stays the same: load, split, embed, store.</p>
-                <p>For this demo, we load five Jakarta EE specification excerpts. CDI, JPA, Concurrency, Jakarta Data, and JAX-RS. That gives the RAG system enough domain knowledge to answer questions about Jakarta EE APIs.</p>
+                <p>Step four is where the monolith story gets concrete. On the left, a standard JPA entity. Nothing special. Title, source, content, timestamp. Standard Jakarta Persistence 3.2. This goes into a relational table called "documents."</p>
+                <p>On the right, the ingestion flow. When the application starts, a CDI event fires this method. First, we persist the documents as JPA entities using EntityManager. Standard JPA. Then we read those same entities, split their content into overlapping chunks, generate vector embeddings, and store them in PgVector.</p>
+                <p>This is the key architectural point. The same PostgreSQL database holds both the relational document table and the vector embeddings table. Same datasource. Same connection pool. Same backups. You can query documents by title with JPQL, or search them by semantic similarity with PgVector. Two access patterns, one database.</p>
+                <p>The duplicate guard checks if documents already exist before re-ingesting. App restarts are safe. If you want to re-ingest, the run.sh truncate command clears both tables.</p>
             </aside>
         </section>
 
@@ -985,7 +1003,7 @@ public class ChatResource {
             <h2>The Complete RAG Pipeline</h2>
             <div class="box-accent" style="text-align: center;">
                 <p style="font-size: 1.3em; font-family: var(--font-display); font-weight: 900;">
-                    6 files. ~120 lines of Jakarta code.
+                    7 files. ~140 lines of Jakarta code.
                 </p>
             </div>
             <table style="margin-top: 20px;">
@@ -1005,9 +1023,14 @@ public class ChatResource {
                     <td>~45</td>
                 </tr>
                 <tr>
+                    <td><code>DocumentEntity</code></td>
+                    <td>JPA entity for structured storage</td>
+                    <td>~20</td>
+                </tr>
+                <tr>
                     <td><code>DataLoader</code></td>
-                    <td>Ingest documents on startup</td>
-                    <td>~30</td>
+                    <td>Persist entities + embed into vectors</td>
+                    <td>~40</td>
                 </tr>
                 <tr>
                     <td><code>ConferenceAssistant</code></td>
@@ -1026,10 +1049,10 @@ public class ChatResource {
                 </tr>
             </table>
             <aside class="notes">
-                <p>Let's count. Six Java files. Roughly 120 lines of actual application code. That's the complete RAG pipeline with vector storage, similarity search, context retrieval, and LLM-powered responses.</p>
+                <p>Let's count. Seven Java files. Roughly 140 lines of actual application code. That's the complete RAG pipeline with JPA entity persistence, vector storage, similarity search, context retrieval, and LLM-powered responses.</p>
                 <p>Compare this to a typical Python RAG stack: LangChain for orchestration, FastAPI for the HTTP layer, a separate vector database like Pinecone or Chroma, and a separate deployment pipeline for the Python service. Same functionality, but more moving parts, more languages to maintain, more deployment complexity.</p>
                 <p>Here, every file is Java. Every dependency is in your pom.xml. Every bean is managed by CDI. It deploys as a single WAR. Your existing Jakarta EE team can understand, maintain, and extend this without learning Python.</p>
-                <p>The "30 lines" in the synopsis refers to the core RAG wiring: the interface, the builder call, and the ingest method. The rest is standard Jakarta EE configuration that any Jakarta developer has written before.</p>
+                <p>The JPA entity is what makes this an "intelligent monolith." Your relational data and your vector data live in the same PostgreSQL instance. You query documents by title with JPQL, or search them by meaning with vector similarity. One database, two access patterns, one WAR.</p>
             </aside>
         </section>
 
@@ -1122,26 +1145,26 @@ public String run() {
                     <tbody>
                         <tr>
                             <td><strong>Hardware</strong></td>
-                            <td>AMD Ryzen 9, 32GB RAM</td>
+                            <td>AMD Ryzen 7 8845HS, 58GB</td>
                             <td>AMD Radeon RX 7900 XTX</td>
                             <td></td>
                         </tr>
                         <tr>
                             <td>Embedding (5 segments)</td>
-                            <td class="muted">Run benchmark</td>
-                            <td class="muted">Run benchmark</td>
+                            <td>101 ms</td>
+                            <td class="muted">TBD</td>
                             <td class="success">-</td>
                         </tr>
                         <tr>
                             <td>Chat (50 words)</td>
-                            <td class="muted">Run benchmark</td>
-                            <td class="muted">Run benchmark</td>
+                            <td>14,743 ms</td>
+                            <td class="muted">TBD</td>
                             <td class="success">-</td>
                         </tr>
                         <tr>
                             <td>Tokens/sec</td>
-                            <td class="muted">Run benchmark</td>
-                            <td class="muted">Run benchmark</td>
+                            <td>~3</td>
+                            <td class="muted">TBD</td>
                             <td class="success">-</td>
                         </tr>
                     </tbody>
@@ -1151,9 +1174,9 @@ public String run() {
                 </p>
             </div>
             <aside class="notes">
-                <p>Placeholder results until we run the actual benchmarks. I'll fill these in before the conference. But the table structure shows what we compare: embedding latency, chat latency, and tokens per second on both CPU and GPU hardware, with the speedup multiplier in the rightmost column.</p>
+                <p>Here are the actual CPU benchmark numbers from this machine. An AMD Ryzen 7 8845HS with 58 GB of RAM. Embedding 5 segments takes 101 milliseconds. That's fast because nomic-embed-text is a small model. Chat is slower: 14.7 seconds for a 50-word response, about 3 tokens per second. That's gemma4:e2b running purely on CPU inside a Docker container.</p>
+                <p>The GPU column is still waiting for a machine with a discrete GPU. The expectation is a dramatic speedup on chat inference, probably 5-10x or more depending on the GPU. Embedding might not improve much because it's already fast on CPU.</p>
                 <p>The bottom note is the key takeaway. Same WAR. Zero code changes. Only OLLAMA_BASE_URL changed. That's the MicroProfile Config integration. The URL is an environment variable in Docker Compose. Change the URL, restart the container, and the same application now talks to a different Ollama instance.</p>
-                <p>In practice, you'd see the most dramatic speedup on chat inference, especially with larger models like gemma4. Embedding is already fast on CPU because nomic-embed-text is a small model. But the chat model benefits enormously from GPU acceleration.</p>
             </aside>
         </section>
 
@@ -1364,7 +1387,7 @@ ENTRYPOINT ["java", "-jar", "/opt/payara/payara-micro.jar",
                 <div class="comparison-row">
                     <div class="comparison-item">
                         <div class="metric-large">1</div>
-                        <div class="metric-label">Complete RAG in ~120 lines<br>of Jakarta EE code</div>
+                        <div class="metric-label">Complete RAG in ~140 lines<br>of Jakarta EE code</div>
                     </div>
                     <div class="comparison-item">
                         <div class="metric-large">0</div>
@@ -1380,7 +1403,7 @@ ENTRYPOINT ["java", "-jar", "/opt/payara/payara-micro.jar",
                 <p><strong>Keep data private.</strong> <strong>Eliminate API costs.</strong> <strong>Deploy anywhere.</strong> Enterprise AI capabilities while maintaining monolithic simplicity.</p>
             </div>
             <aside class="notes">
-                <p>Three numbers to take away. 120 lines of Jakarta code for a complete RAG pipeline. That includes the CDI producers, the data loader, the AI service interface, the wiring, and the endpoint. 120 lines. Zero external API calls. The LLM runs on your hardware. The embeddings stay in your database. And one config change to move between CPU and GPU hardware. Change OLLAMA_BASE_URL, restart, done.</p>
+                <p>Three numbers to take away. 140 lines of Jakarta code for a complete RAG pipeline with JPA entities and vector embeddings. That includes the entity, the CDI producers, the data loader, the AI service interface, the wiring, and the endpoint. 140 lines. Zero external API calls. The LLM runs on your hardware. The embeddings stay in your database. And one config change to move between CPU and GPU hardware. Change OLLAMA_BASE_URL, restart, done.</p>
                 <p>The bottom block captures the three promises. Keep data private because nothing leaves your network. Eliminate API costs because there's no API to call. Deploy anywhere because it's a standard WAR on a standard runtime.</p>
                 <p>This is what I mean by the intelligent monolith. Your monolith gains AI capabilities without becoming a distributed system. You don't need a microservice for AI. You don't need Python. You don't need a separate vector database. You need CDI, LangChain4j, Ollama, and pgvector. Four dependencies. All Java. All deployable as one unit.</p>
             </aside>

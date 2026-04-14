@@ -75,9 +75,15 @@ public class BenchmarkResource {
         BenchmarkResult cpu = data.cpu();
         BenchmarkResult gpu = data.gpu();
 
-        long embSpeedup = cpu.embeddingMs() / Math.max(gpu.embeddingMs(), 1);
-        long chatSpeedup = cpu.chatMs() / Math.max(gpu.chatMs(), 1);
-        double tpsSpeedup = gpu.tokensPerSec() / Math.max(cpu.tokensPerSec(), 0.1);
+        boolean gpuReady = gpu.embeddingMs() > 0 && gpu.chatMs() > 0;
+
+        String embSpeedup = gpuReady ? cpu.embeddingMs() / gpu.embeddingMs() + "x" : "TBD";
+        String chatSpeedup = gpuReady ? cpu.chatMs() / gpu.chatMs() + "x" : "TBD";
+        String tpsSpeedup = gpuReady ? String.format("%.0fx", gpu.tokensPerSec() / cpu.tokensPerSec()) : "TBD";
+
+        String gpuEmbDisplay = gpuReady ? gpu.embeddingMs() + " ms" : "Run on GPU hardware";
+        String gpuChatDisplay = gpuReady ? gpu.chatMs() + " ms" : "Run on GPU hardware";
+        String gpuTpsDisplay = gpuReady ? String.format("%.0f", gpu.tokensPerSec()) : "-";
 
         return """
                 <div class="benchmark-table">
@@ -90,13 +96,13 @@ public class BenchmarkResource {
                         <td>Hardware</td><td>%s</td><td>%s</td><td></td>
                       </tr>
                       <tr>
-                        <td>Embedding (5 segments)</td><td>%d ms</td><td>%d ms</td><td class="speedup">%dx</td>
+                        <td>Embedding (5 segments)</td><td>%d ms</td><td>%s</td><td class="speedup">%s</td>
                       </tr>
                       <tr>
-                        <td>Chat (50 words)</td><td>%d ms</td><td>%d ms</td><td class="speedup">%dx</td>
+                        <td>Chat (50 words)</td><td>%d ms</td><td>%s</td><td class="speedup">%s</td>
                       </tr>
                       <tr>
-                        <td>Tokens/sec</td><td>%.0f</td><td>%.0f</td><td class="speedup">%.0fx</td>
+                        <td>Tokens/sec</td><td>%.0f</td><td>%s</td><td class="speedup">%s</td>
                       </tr>
                     </tbody>
                   </table>
@@ -104,9 +110,9 @@ public class BenchmarkResource {
                 </div>
                 """.formatted(
                 cpu.hardware(), gpu.hardware(),
-                cpu.embeddingMs(), gpu.embeddingMs(), embSpeedup,
-                cpu.chatMs(), gpu.chatMs(), chatSpeedup,
-                cpu.tokensPerSec(), gpu.tokensPerSec(), tpsSpeedup
+                cpu.embeddingMs(), gpuEmbDisplay, embSpeedup,
+                cpu.chatMs(), gpuChatDisplay, chatSpeedup,
+                cpu.tokensPerSec(), gpuTpsDisplay, tpsSpeedup
         );
     }
 
