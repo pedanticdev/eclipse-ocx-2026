@@ -1,0 +1,1464 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>The Intelligent Monolith: Supercharging Jakarta EE with Local AI</title>
+    <link href="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/dist/reset.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/dist/reveal.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/dist/theme/black.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/plugin/highlight/monokai.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700;9..144,900&family=IBM+Plex+Sans:wght@200;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent: #38bdf8;
+            --accent-dim: rgba(56, 189, 248, 0.12);
+            --accent-border: rgba(56, 189, 248, 0.3);
+            --bg-dark: #0a0e17;
+            --bg-darker: #060a11;
+            --surface: #111827;
+            --surface-raised: #1a2233;
+            --text-light: #e2e8f0;
+            --text-muted: #94a3b8;
+            --success: #34d399;
+            --danger: #f87171;
+            --warn: #fbbf24;
+            --code-bg: #0f1623;
+            --font-display: 'Fraunces', serif;
+            --font-body: 'IBM Plex Sans', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        .reveal {
+            font-family: var(--font-body);
+            background: var(--bg-dark);
+            font-size: 26px;
+            line-height: 1.4;
+            color: var(--text-light);
+            font-weight: 400;
+        }
+
+        /* --- Typography --- */
+
+        .reveal h1 {
+            font-family: var(--font-display);
+            color: var(--accent);
+            text-transform: none;
+            font-size: 2.4em;
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+        }
+
+        .reveal h2 {
+            font-family: var(--font-display);
+            color: var(--accent);
+            text-transform: none;
+            font-size: 1.7em;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        .reveal h3 {
+            font-family: var(--font-body);
+            color: #c8c8cc;
+            text-transform: none;
+            font-size: 1.15em;
+            font-weight: 600;
+            letter-spacing: 0;
+        }
+
+        .reveal h4 {
+            font-family: var(--font-body);
+            font-size: 0.95em;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .reveal p {
+            font-weight: 200;
+        }
+
+        .reveal strong, .reveal b {
+            font-weight: 700;
+        }
+
+        /* --- Section Dividers --- */
+
+        .reveal .section-number {
+            font-family: var(--font-display);
+            font-size: 6em;
+            font-weight: 900;
+            color: var(--accent-dim);
+            line-height: 1;
+            margin-bottom: -10px;
+        }
+
+        /* --- Code --- */
+
+        .reveal code {
+            font-family: var(--font-mono);
+            background: var(--surface);
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: var(--accent);
+            font-size: 0.85em;
+        }
+
+        .reveal pre {
+            margin: 15px 0;
+        }
+
+        .reveal pre code {
+            background: var(--code-bg);
+            padding: 16px 20px;
+            font-size: 0.75em;
+            line-height: 1.45;
+            border: 1px solid var(--accent-border);
+            border-radius: 8px;
+            color: #e0e0e0;
+        }
+
+        .reveal .two-column pre code {
+            font-size: 0.65em;
+            padding: 10px 12px;
+            line-height: 1.35;
+        }
+
+        /* --- Layout --- */
+
+        .reveal .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin: 10px 0;
+        }
+
+        .reveal .three-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 18px;
+            margin: 10px 0;
+        }
+
+        /* --- Cards & Boxes --- */
+
+        .reveal .box {
+            background: var(--surface);
+            border: 1px solid var(--accent-border);
+            border-radius: 12px;
+            padding: 20px 24px;
+        }
+
+        .reveal .box h3, .reveal .box h4 {
+            margin-top: 0;
+        }
+
+        .reveal .box-accent {
+            background: var(--accent-dim);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 20px 24px;
+        }
+
+        .reveal .box-success {
+            background: rgba(52, 211, 153, 0.08);
+            border: 1px solid rgba(52, 211, 153, 0.3);
+            border-radius: 12px;
+            padding: 20px 24px;
+        }
+
+        .reveal .box-danger {
+            background: rgba(248, 113, 113, 0.08);
+            border: 1px solid rgba(248, 113, 113, 0.3);
+            border-radius: 12px;
+            padding: 20px 24px;
+        }
+
+        /* --- Tables --- */
+
+        .reveal table {
+            font-size: 0.75em;
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        .reveal table th {
+            background: var(--accent);
+            color: var(--bg-dark);
+            font-weight: 700;
+            padding: 10px 14px;
+            text-align: left;
+            border-radius: 4px;
+        }
+
+        .reveal table td {
+            background: var(--surface);
+            padding: 8px 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .reveal table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* --- Lists --- */
+
+        .reveal ul, .reveal ol {
+            font-size: 0.82em;
+        }
+
+        .reveal li {
+            margin-bottom: 6px;
+        }
+
+        /* --- Inline Highlights --- */
+
+        .reveal .hl {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .reveal .success {
+            color: var(--success);
+            font-weight: 700;
+        }
+
+        .reveal .danger {
+            color: var(--danger);
+            font-weight: 700;
+        }
+
+        .reveal .warn {
+            color: var(--warn);
+            font-weight: 700;
+        }
+
+        .reveal .muted {
+            color: var(--text-muted);
+            font-weight: 200;
+        }
+
+        /* --- Metrics --- */
+
+        .reveal .metric-large {
+            font-family: var(--font-display);
+            font-size: 3.5em;
+            font-weight: 900;
+            color: var(--accent);
+            line-height: 1;
+        }
+
+        .reveal .metric-label {
+            font-size: 0.8em;
+            color: var(--text-muted);
+            font-weight: 200;
+            margin-top: 8px;
+        }
+
+        .reveal .comparison-row {
+            display: flex;
+            justify-content: space-around;
+            margin: 25px 0;
+        }
+
+        .reveal .comparison-item {
+            text-align: center;
+            padding: 15px 25px;
+        }
+
+        /* --- Architecture Diagram --- */
+
+        .reveal .architecture-diagram {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin: 25px 0;
+            flex-wrap: wrap;
+        }
+
+        .reveal .arch-box {
+            background: var(--surface);
+            border: 2px solid var(--accent-border);
+            border-radius: 10px;
+            padding: 14px 18px;
+            min-width: 100px;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .reveal .arch-box strong {
+            color: var(--accent);
+            display: block;
+            font-size: 0.9em;
+        }
+
+        .reveal .arrow {
+            font-size: 1.6em;
+            color: var(--accent);
+            font-weight: 200;
+        }
+
+        /* --- Layers (left-border quote blocks) --- */
+
+        .reveal .layers {
+            background: var(--surface);
+            border-left: 4px solid var(--accent);
+            padding: 18px 24px;
+            margin: 18px 0;
+            text-align: left;
+            font-size: 0.85em;
+            border-radius: 0 8px 8px 0;
+        }
+
+        /* --- Speaker Badge --- */
+
+        .reveal .speaker-badge {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.7em;
+            font-weight: 700;
+            font-family: var(--font-body);
+        }
+
+        .reveal .speaker-luqman {
+            background: rgba(56, 189, 248, 0.2);
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+
+        /* --- Speaker Card --- */
+
+        .reveal .speaker-card {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: var(--surface);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin: 10px 0;
+        }
+
+        .reveal .speaker-card .speaker-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-display);
+            font-size: 1.6em;
+            font-weight: 900;
+            flex-shrink: 0;
+        }
+
+        .reveal .speaker-card .speaker-info h4 {
+            margin: 0 0 4px 0;
+            color: var(--accent);
+        }
+
+        .reveal .speaker-card .speaker-info p {
+            margin: 0;
+            font-size: 0.85em;
+            color: var(--text-muted);
+            font-weight: 200;
+        }
+
+        /* --- Agenda --- */
+
+        .reveal .agenda-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin: 12px 0;
+            font-size: 0.85em;
+        }
+
+        .reveal .agenda-num {
+            font-family: var(--font-display);
+            font-size: 1.4em;
+            font-weight: 900;
+            color: var(--accent);
+            min-width: 40px;
+        }
+
+        /* --- Speaker Notes --- */
+
+        .reveal aside.notes {
+            font-size: 0.7em;
+            line-height: 1.5;
+        }
+
+        /* --- No Python Badge --- */
+
+        .reveal .no-badge {
+            display: inline-block;
+            padding: 6px 18px;
+            border-radius: 20px;
+            font-size: 0.7em;
+            font-weight: 700;
+            font-family: var(--font-mono);
+        }
+
+        .reveal .badge-danger {
+            background: rgba(248, 113, 113, 0.15);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
+        .reveal .badge-success {
+            background: rgba(52, 211, 153, 0.15);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+    </style>
+</head>
+<body>
+<div class="reveal">
+    <div class="slides">
+
+        <!-- ============================================================ -->
+        <!-- SLIDE 1: Title -->
+        <!-- ============================================================ -->
+        <section>
+            <h1 style="font-size: 2em;">The Intelligent Monolith</h1>
+            <h3 style="color: var(--accent); font-weight: 200; margin-top: 10px;">Supercharging Jakarta EE with Local AI</h3>
+            <div style="margin-top: 50px; display: flex; gap: 40px; justify-content: center; font-size: 0.75em;">
+                <div style="text-align: center;">
+                    <span class="speaker-badge speaker-luqman">Luqman Saeed</span>
+                    <p class="muted" style="margin-top: 6px;">Jakarta EE Developer, Payara</p>
+                </div>
+            </div>
+            <p class="muted" style="margin-top: 30px; font-size: 0.65em;">Eclipse OCX 2026 &middot; Brussels</p>
+            <aside class="notes">
+                <p>Welcome everyone. I'm Luqman, I work at Payara on the Jakarta EE platform team. Today's session is called "The Intelligent Monolith" and the premise is simple: what if you could add AI capabilities to your existing Jakarta EE application without reaching for Python, without signing up for an API key, and without splitting your system into microservices?</p>
+                <p>I'm going to build a complete RAG system live. Retrieval-Augmented Generation. That's the pattern where you give an LLM relevant context from your own data so it can answer questions accurately instead of hallucinating. And we're going to do it entirely inside a single WAR file running on Payara Micro.</p>
+                <p>Everything you'll see is open source. You can clone the repo and run it yourself with one command. Same WAR works on any Jakarta EE 11 runtime, not just Payara.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE 2: About the Speaker -->
+        <!-- ============================================================ -->
+        <section>
+            <h2>About the Speaker</h2>
+            <div class="speaker-card" style="max-width: 600px; margin: 20px auto;">
+                <div class="speaker-avatar" style="background: rgba(56,189,248,0.2); color: var(--accent);">LS</div>
+                <div class="speaker-info">
+                    <h4>Luqman Saeed</h4>
+                    <p>Jakarta EE Developer, Payara</p>
+                    <p style="margin-top: 6px; font-size: 0.9em; color: var(--text-light);">Building enterprise Java applications. Writes about Jakarta EE, server-side rendering, and keeping things simple.</p>
+                </div>
+            </div>
+            <aside class="notes">
+                <p>Quick intro about me. I work at Payara on the platform team, specifically on the Jakarta EE side. My bias is toward simplicity. I'll pick server-side rendering over a SPA every time. I'll pick a modular monolith over microservices for most workloads. And today I'm going to make the case that AI shouldn't require a different architecture either.</p>
+                <p>The name of the talk is deliberate. "Intelligent Monolith." Not "intelligent microservice" or "AI-powered service mesh." The claim is that your existing monolith, the one already running Jakarta EE, can gain AI capabilities without being torn apart.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE 3: Agenda -->
+        <!-- ============================================================ -->
+        <section>
+            <h2>Agenda</h2>
+            <div class="agenda-item">
+                <span class="agenda-num">1</span>
+                <div><strong>The Pitch</strong> &mdash; Why local AI inside Jakarta EE</div>
+            </div>
+            <div class="agenda-item">
+                <span class="agenda-num">2</span>
+                <div><strong>The Stack</strong> &mdash; CDI, LangChain4j, Ollama, PgVector</div>
+            </div>
+            <div class="agenda-item">
+                <span class="agenda-num">3</span>
+                <div><strong>Live Build</strong> &mdash; From bare WAR to RAG in 6 steps</div>
+            </div>
+            <div class="agenda-item">
+                <span class="agenda-num">4</span>
+                <div><strong>CPU vs GPU</strong> &mdash; Same WAR, different hardware</div>
+            </div>
+            <div class="agenda-item">
+                <span class="agenda-num">5</span>
+                <div><strong>Deployment</strong> &mdash; Docker Compose, one command</div>
+            </div>
+            <div class="agenda-item">
+                <span class="agenda-num">6</span>
+                <div><strong>Takeaways</strong> &mdash; What you leave with</div>
+            </div>
+            <aside class="notes">
+                <p>Here's the road map for the next 45 minutes or so. Six sections. We start with why this approach matters, what problems it solves. Then I'll walk through the technical stack, the four pieces you need. After that we build it live, six incremental steps where each one adds a capability to the previous one. Then we compare CPU vs GPU performance, which is where the deployment story gets interesting. Then Docker Compose deployment. And I'll close with what you can take back to your team on Monday.</p>
+                <p>The live build is the main event. Everything before it is context. Everything after it is operationalizing what we built.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- PART 1: THE PITCH -->
+        <!-- ============================================================ -->
+        <section>
+            <div class="section-number">01</div>
+            <h2>The Pitch</h2>
+            <p class="muted">Why local AI inside Jakarta EE</p>
+            <aside class="notes">
+                <p>Let me set the stage before we get into code. Why are we even talking about AI inside a monolith? The standard pattern for AI integration in Java applications is to call an external API. You send your data to OpenAI or Anthropic or whoever, they run the model, send back a response. It works. But it comes with tradeoffs that matter in enterprise settings.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: The Problem with AI Integration -->
+        <!-- ============================================================ -->
+        <section>
+            <h2>The Problem with AI Integration</h2>
+            <div class="two-column">
+                <div class="box-danger">
+                    <h3 style="color: var(--danger);">Typical AI Integration</h3>
+                    <ul>
+                        <li>External API calls (OpenAI, Anthropic)</li>
+                        <li>Data leaves your network</li>
+                        <li>API costs scale with usage</li>
+                        <li>Vendor lock-in</li>
+                        <li>Network latency on every request</li>
+                        <li>Python dependency for AI services</li>
+                    </ul>
+                </div>
+                <div class="box-success">
+                    <h3 style="color: var(--success);">What If AI Was Local?</h3>
+                    <ul>
+                        <li>Zero data leaves the JVM</li>
+                        <li>No API costs. Ever.</li>
+                        <li>No vendor dependencies</li>
+                        <li>Sub-millisecond inference on GPU</li>
+                        <li>Pure Java. No Python.</li>
+                        <li>Deploys like any Jakarta EE app</li>
+                    </ul>
+                </div>
+            </div>
+            <aside class="notes">
+                <p>Let's be honest about the typical AI integration pattern. You've got your nice Jakarta EE application, clean architecture, everything runs inside your network. Then someone says "we need AI." Next thing you know, you're sending user queries to an external API. Your data leaves your network. You're paying per token, which means your costs scale linearly with usage and you can't predict them. You're coupled to a vendor's API format, pricing model, and uptime. And somewhere in your stack, someone spun up a Python microservice just to talk to the LLM because the examples are all in Python.</p>
+                <p>Now look at the right side. What if the model ran inside your infrastructure? Zero data leaves your network because the inference happens on your hardware. No API costs because there's no API. No vendor lock-in because you're running an open-source model. Latency drops to single-digit milliseconds on GPU because there's no network hop. And it's pure Java. No Python runtime to manage, no pip dependency hell, no separate team to maintain the "AI service."</p>
+                <p>This isn't hypothetical. This is what we're going to build today.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: No Python, No API Key, No Microservice -->
+        <!-- ============================================================ -->
+        <section>
+            <h2 style="font-size: 1.4em;">No Python. No API Key. No Microservice.</h2>
+            <div class="layers" style="margin-top: 30px;">
+                <p><strong>The claim:</strong> A complete RAG system with vector search and LLM-powered answers, built entirely within a single Jakarta EE WAR.</p>
+            </div>
+            <div class="comparison-row">
+                <div class="comparison-item">
+                    <span class="no-badge badge-danger">No Python</span>
+                </div>
+                <div class="comparison-item">
+                    <span class="no-badge badge-danger">No API Key</span>
+                </div>
+                <div class="comparison-item">
+                    <span class="no-badge badge-danger">No Microservice</span>
+                </div>
+            </div>
+            <div class="box-accent" style="text-align: center;">
+                <p style="font-size: 1.1em;"><strong>Deploy like a Jakarta EE app. Think like an AI system.</strong></p>
+            </div>
+            <aside class="notes">
+                <p>Three things you won't need for this demo. No Python runtime. I have nothing against Python, but if your team writes Java, your AI infrastructure should speak Java too. No API key. There's no external service to authenticate against. No separate microservice. The AI runs inside the same WAR as everything else.</p>
+                <p>What does run: Ollama handles model inference locally. Think of it as a lightweight model server. You pull models with "ollama pull gemma4" and it serves them over a local HTTP endpoint. CDI wires the AI services as managed beans. PgVector, which is a PostgreSQL extension, stores the vector embeddings in the same database you already run.</p>
+                <p>The tagline at the bottom is the goal. Deploy it like any Jakarta EE application. But it thinks like an AI system. Same operational model. New capabilities.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- PART 2: THE STACK -->
+        <!-- ============================================================ -->
+        <section>
+            <div class="section-number">02</div>
+            <h2>The Stack</h2>
+            <p class="muted">CDI, LangChain4j, Ollama, PgVector</p>
+            <aside class="notes">
+                <p>Let me walk through the four pieces that make this work. The stack is deliberately small. Four technologies, each doing one thing well. If you're already running Jakarta EE and PostgreSQL in production, you're halfway there. You just need to add Ollama and the pgvector extension.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: Architecture Overview -->
+        <!-- ============================================================ -->
+        <section>
+            <h2>Architecture</h2>
+            <div class="architecture-diagram">
+                <div class="arch-box">
+                    <strong>Browser</strong>
+                    HTML + HTMX
+                </div>
+                <span class="arrow">&rarr;</span>
+                <div class="arch-box">
+                    <strong>Payara Micro</strong>
+                    JAX-RS + CDI
+                </div>
+                <span class="arrow">&rarr;</span>
+                <div class="arch-box">
+                    <strong>LangChain4j</strong>
+                    RAG Pipeline
+                </div>
+                <span class="arrow">&rarr;</span>
+                <div class="arch-box">
+                    <strong>Ollama</strong>
+                    Local LLM
+                </div>
+            </div>
+            <div class="architecture-diagram" style="margin-top: 10px;">
+                <div class="arch-box" style="border-color: var(--success);">
+                    <strong>PostgreSQL</strong>
+                    pgvector Extension
+                </div>
+            </div>
+            <p class="muted" style="text-align: center; margin-top: 15px; font-size: 0.75em;">
+                Vector storage lives alongside your relational data in the same PostgreSQL instance
+            </p>
+            <aside class="notes">
+                <p>Four moving parts, all connected. The browser talks to Payara Micro using HTMX. No JavaScript framework. HTMX sends form posts, Payara returns HTML fragments, HTMX swaps them into the DOM. That's the entire frontend.</p>
+                <p>Inside Payara, CDI manages the AI beans. LangChain4j provides the RAG pipeline. It talks to Ollama over HTTP for inference. And PgVector in PostgreSQL stores the vector embeddings.</p>
+                <p>Notice there's no separate vector database. You don't need Pinecone or Weaviate or Milvus. pgvector is a PostgreSQL extension. It adds vector similarity search to the database you already run. Same instance, same backups, same connection pool, same operational model. Your embeddings live alongside your relational data.</p>
+                <p>This is important for the regulated industries in the room. No new database to audit. No new data flow to secure. The embeddings are just rows in a PostgreSQL table.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: Jakarta EE Stack -->
+        <!-- ============================================================ -->
+        <section>
+            <h2>Jakarta EE 11 Stack</h2>
+            <div class="three-column">
+                <div class="box">
+                    <h4>CDI 4.1</h4>
+                    <ul style="font-size: 0.85em;">
+                        <li>Bean producers for AI models</li>
+                        <li>Event-driven ingestion</li>
+                        <li>Application-scoped services</li>
+                    </ul>
+                </div>
+                <div class="box">
+                    <h4>JAX-RS</h4>
+                    <ul style="font-size: 0.85em;">
+                        <li>Chat endpoint</li>
+                        <li>Benchmark endpoint</li>
+                        <li>Server-rendered HTML</li>
+                    </ul>
+                </div>
+                <div class="box">
+                    <h4>JPA 3.2</h4>
+                    <ul style="font-size: 0.85em;">
+                        <li>DataSource definition</li>
+                        <li>PgVector integration</li>
+                        <li>Persistence context</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="two-column" style="margin-top: 15px;">
+                <div class="box">
+                    <h4>MicroProfile Config</h4>
+                    <ul style="font-size: 0.85em;">
+                        <li>Externalize OLLAMA_BASE_URL</li>
+                        <li>Switch models at deploy time</li>
+                    </ul>
+                </div>
+                <div class="box">
+                    <h4>Server-Side Rendering</h4>
+                    <ul style="font-size: 0.85em;">
+                        <li>HTMX for interactivity</li>
+                        <li>CommonMark for markdown</li>
+                        <li>No JavaScript framework</li>
+                    </ul>
+                </div>
+            </div>
+            <aside class="notes">
+                <p>Every piece uses standard Jakarta EE APIs. Nothing custom or proprietary. CDI 4.1 producers create the embedding model, the vector store, and the content retriever as application-scoped beans. JAX-RS handles the chat endpoint and the benchmark endpoint. JPA 3.2 connects to PostgreSQL with the pgvector extension. MicroProfile Config externalizes the OLLAMA_BASE_URL so you can point it at different Ollama instances without rebuilding.</p>
+                <p>The frontend is pure HTML with HTMX attributes. The server renders markdown to HTML using CommonMark before sending it to the browser. No React, no build step, no npm. The entire frontend is one HTML file, one CSS file, and the HTMX library.</p>
+                <p>This matters because it means any Java developer on your team can understand and maintain the whole stack. No context-switching between Java and JavaScript. No frontend build pipeline. Server-side rendering with progressive interactivity.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: LangChain4j + Ollama -->
+        <!-- ============================================================ -->
+        <section>
+            <h2>LangChain4j + Ollama</h2>
+            <div class="two-column">
+                <div>
+                    <h4>LangChain4j</h4>
+                    <ul style="font-size: 0.85em;">
+                        <li>Java-native LLM integration</li>
+                        <li>RAG pipeline out of the box</li>
+                        <li>CDI portable extension</li>
+                        <li>Declarative AI services</li>
+                        <li>Same patterns as LangChain (Python) but idiomatic Java</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Ollama</h4>
+                    <ul style="font-size: 0.85em;">
+                        <li>Run LLMs locally</li>
+                        <li>gemma4 for chat</li>
+                        <li>nomic-embed-text for embeddings</li>
+                        <li>CPU or GPU acceleration</li>
+                        <li>Docker-friendly</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="layers" style="margin-top: 20px;">
+                <p><code>ChatModel</code> and <code>EmbeddingModel</code> are CDI beans, injected like any other dependency. Swap Ollama for another provider by changing one config property.</p>
+            </div>
+            <aside class="notes">
+                <p>LangChain4j is the glue. It's the Java equivalent of LangChain in Python. Same patterns: document splitting, embedding, retrieval, response generation. But idiomatic Java. It has a CDI portable extension that auto-discovers model providers, so you don't wire things manually. In our case we use CDI producers to work around a generic type resolution issue in the extension, but the pattern is still clean.</p>
+                <p>Ollama is what makes local inference easy. It's a lightweight model server. You install it, pull a model with a single command, and it serves inference over a local HTTP endpoint. No CUDA setup, no model weight downloads from HuggingFace, no Python environment. Just "ollama pull gemma4" and you're running.</p>
+                <p>For this demo we use two models: gemma4:e2b for chat and nomic-embed-text for embeddings. Both are open-source. Both run on CPU or GPU. The embedding model produces 768-dimensional vectors, which is why our PgVector store is configured for dimension 768.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: Ollama Deep Dive -->
+        <!-- ============================================================ -->
+        <section>
+            <h2>Why Ollama?</h2>
+            <div class="two-column">
+                <div class="box">
+                    <h4>What Ollama Does</h4>
+                    <ul style="font-size: 0.85em;">
+                        <li>Runs LLMs locally with a single command</li>
+                        <li>Handles model download, quantization, GPU detection</li>
+                        <li>Exposes a simple HTTP API</li>
+                        <li>Docker-friendly official image</li>
+                        <li>Works on macOS, Linux, Windows (WSL2)</li>
+                    </ul>
+                </div>
+                <div class="box">
+                    <h4>Alternatives</h4>
+                    <ul style="font-size: 0.85em;">
+                        <li><span class="hl">llama.cpp</span> &mdash; lower-level, more control, more setup</li>
+                        <li><span class="hl">vLLM</span> &mdash; high-throughput serving, production-grade</li>
+                        <li><span class="hl">LocalAI</span> &mdash; OpenAI-compatible API, drop-in replacement</li>
+                        <li><span class="hl">llamafile</span> &mdash; single executable, zero install</li>
+                        <li><span class="hl">GPT4All</span> &mdash; desktop app, CPU-optimized</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="layers" style="margin-top: 15px;">
+                <p>We chose Ollama for the demo because it's the simplest developer experience. Swap it for any of these alternatives by changing one CDI producer method. LangChain4j supports all of them.</p>
+            </div>
+            <aside class="notes">
+                <p>Ollama isn't the only option. It's the easiest one. One command to install, one command to pull a model, and you have a local LLM running. It auto-detects your GPU, handles quantization, and serves a clean HTTP API.</p>
+                <p>But maybe you need something different. llama.cpp gives you more control over quantization and memory management. vLLM is designed for high-throughput production serving with batching and speculative decoding. LocalAI gives you an OpenAI-compatible API, so your existing code that calls OpenAI can point at LocalAI instead. llamafile is a single executable that bundles the model weights and runtime. GPT4All is optimized for CPU-only inference on laptops.</p>
+                <p>The key insight: all of these expose an HTTP endpoint. LangChain4j has integrations for all of them. Switching from Ollama to vLLM means changing one builder call in your CDI producer. The rest of the pipeline, the RAG pipeline, doesn't change at all.</p>
+                <p>In a production setting, I'd probably use vLLM behind a load balancer for the chat model, and keep Ollama for the embedding model since embedding is less latency-sensitive. But for this demo, Ollama handles both.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- PART 3: LIVE BUILD -->
+        <!-- ============================================================ -->
+        <section>
+            <div class="section-number">03</div>
+            <h2>Live Build</h2>
+            <p class="muted">From bare WAR to RAG in 6 steps</p>
+            <aside class="notes">
+                <p>Now the fun part. I'm going to walk through exactly how this is built. Six incremental steps. Each step adds one capability on top of the previous one. By step 6, you have the complete RAG system.</p>
+                <p>The code you'll see is the actual code from the demo application. No simplifications, no "imagine this part is implemented." This is what runs when you hit localhost:8080.</p>
+                <p>I'll show each file and explain why it's structured that way. Pay attention to the CDI patterns, because that's where the magic happens.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: Step 1 - DataSource -->
+        <!-- ============================================================ -->
+        <section>
+            <h3>Step 1: Define the DataSource</h3>
+            <pre><code class="language-java">@ApplicationScoped
+@DataSourceDefinition(
+    name = "java:app/ocx-db",
+    className = "org.postgresql.ds.PGSimpleDataSource",
+    serverName = "postgres",
+    portNumber = 5432,
+    databaseName = "ocx",
+    user = "ocx",
+    password = "ocx"
+)
+public class DataSourceConfig {}</code></pre>
+            <p class="muted" style="font-size: 0.75em; margin-top: 10px;">
+                Standard Jakarta EE <code>@DataSourceDefinition</code>. PostgreSQL with pgvector extension.
+            </p>
+            <aside class="notes">
+                <p>Step one. A single class. One annotation. This is standard Jakarta EE, nothing AI-specific yet. The @DataSourceDefinition annotation declares a PostgreSQL datasource that Payara will manage.</p>
+                <p>The interesting bit is what this datasource connects to. We're using the pgvector Docker image, which is standard PostgreSQL with the vector extension pre-installed. The extension gets enabled at startup with a single SQL command: CREATE EXTENSION IF NOT EXISTS vector. That one command adds vector similarity search to PostgreSQL. No separate vector database needed.</p>
+                <p>If you're already running PostgreSQL in production, you just install the extension and you have a vector database. Same connection pool, same JDBC driver, same everything.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: Step 2 - CDI Producers -->
+        <!-- ============================================================ -->
+        <section>
+            <h3>Step 2: CDI Producers for AI Beans</h3>
+            <pre><code class="language-java">@ApplicationScoped
+public class EmbeddingProducers {
+
+    @Resource(lookup = "java:app/ocx-db")
+    DataSource dataSource;
+
+    @Produces @ApplicationScoped
+    public EmbeddingModel embeddingModel() {
+        return OllamaEmbeddingModel.builder()
+            .baseUrl(ollamaBaseUrl)
+            .modelName("nomic-embed-text")
+            .build();
+    }
+
+    @Produces @ApplicationScoped
+    public EmbeddingStore&lt;TextSegment&gt; embeddingStore() {
+        return PgVectorEmbeddingStore.datasourceBuilder()
+            .datasource(dataSource)
+            .dimension(768)
+            .table("embeddings")
+            .createTable(true)
+            .build();
+    }
+}</code></pre>
+            <aside class="notes">
+                <p>Step two. This is where CDI starts pulling its weight. Three producer methods in one class. The first creates an OllamaEmbeddingModel, configured with the model name "nomic-embed-text" and a timeout. The OLLAMA_BASE_URL comes from MicroProfile Config, which means you can override it with an environment variable without rebuilding.</p>
+                <p>The second producer creates a PgVectorEmbeddingStore. Notice it uses the same DataSource from step one. The dimension is 768 because that's what nomic-embed-text outputs. createTable(true) means it creates the vector table automatically on first run. You don't need to run DDL scripts.</p>
+                <p>The third producer, which I'll show on the next slide, creates the ContentRetriever. But look at what we've achieved already: EmbeddingModel and EmbeddingStore are now CDI beans. Any class in the application can @Inject them. That's the CDI advantage. The AI infrastructure is wired the same way you wire a database or a message queue.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: Step 3 - Content Retriever -->
+        <!-- ============================================================ -->
+        <section>
+            <h3>Step 3: Wire the Content Retriever</h3>
+            <pre><code class="language-java">@Produces @ApplicationScoped
+public ContentRetriever contentRetriever(
+        EmbeddingStore&lt;TextSegment&gt; store,
+        EmbeddingModel model) {
+    return EmbeddingStoreContentRetriever.builder()
+        .embeddingStore(store)
+        .embeddingModel(model)
+        .maxResults(5)
+        .minScore(0.5)
+        .build();
+}</code></pre>
+            <div class="layers" style="margin-top: 15px;">
+                <p>The retriever finds the <span class="hl">top 5 most similar segments</span> with a minimum relevance score of 0.5. CDI injects both the store and model from our producers.</p>
+            </div>
+            <aside class="notes">
+                <p>Step three. The ContentRetriever is the retrieval part of RAG. It takes a user's question, embeds it using the EmbeddingModel, searches the EmbeddingStore for the most similar segments, and returns the top results.</p>
+                <p>Two tuning knobs: maxResults controls how many segments to retrieve. We use 5. minScore sets the relevance threshold. We use 0.5 on a 0-to-1 scale. Anything below 0.5 similarity gets filtered out. This prevents irrelevant results from polluting the LLM's context window.</p>
+                <p>The CDI magic here: both the store and the model are method parameters. CDI resolves them from the producers we defined in step two. You don't pass them explicitly. You just declare what you need and CDI provides it.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: Step 4 - Data Ingestion -->
+        <!-- ============================================================ -->
+        <section>
+            <h3>Step 4: Ingest Documents on Startup</h3>
+            <pre><code class="language-java">@ApplicationScoped
+public class DataLoader {
+
+    @Inject EmbeddingModel embeddingModel;
+    @Inject EmbeddingStore&lt;TextSegment&gt; embeddingStore;
+
+    void init(@Observes @Initialized(ApplicationScoped.class) Object event) {
+        List&lt;Document&gt; documents = loadJakartaDocs();
+        DocumentSplitter splitter = DocumentSplitters.recursive(500, 100);
+        List&lt;TextSegment&gt; segments = split(documents, splitter);
+
+        List&lt;Embedding&gt; embeddings = embeddingModel.embedAll(segments).content();
+        embeddingStore.addAll(embeddings, segments);
+    }
+}</code></pre>
+            <div class="layers" style="margin-top: 15px;">
+                <p><span class="hl">CDI event observer</span> triggers ingestion when the application scope initializes. Documents are split into 500-character overlapping segments, embedded, and stored.</p>
+            </div>
+            <aside class="notes">
+                <p>Step four. Data ingestion. When the CDI application scope initializes, this observer method fires. It loads Jakarta EE specification documents from the classpath, splits them into overlapping chunks of about 500 characters, generates embeddings for all chunks, and stores them in PgVector.</p>
+                <p>The DocumentSplitter uses recursive splitting, which means it tries to split on paragraph boundaries first, then sentence boundaries, then word boundaries. The 100-character overlap ensures that context isn't lost at chunk boundaries. A sentence that spans two chunks will appear in both, which improves retrieval quality.</p>
+                <p>In production, you wouldn't load from the classpath. You'd load from a database, or a file system, or an S3 bucket. LangChain4j has document loaders for all of those. The ingestion pattern stays the same: load, split, embed, store.</p>
+                <p>For this demo, we load five Jakarta EE specification excerpts. CDI, JPA, Concurrency, Jakarta Data, and JAX-RS. That gives the RAG system enough domain knowledge to answer questions about Jakarta EE APIs.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: Step 5 - AI Service Interface -->
+        <!-- ============================================================ -->
+        <section>
+            <h3>Step 5: Define the AI Service</h3>
+            <div class="two-column">
+                <div>
+                    <h4>The Interface</h4>
+                    <pre><code class="language-java">@SystemMessage("""
+  You are a Jakarta EE expert
+  assistant. Answer questions
+  using the provided context.
+  Be concise.
+  """)
+public interface ConferenceAssistant {
+    String ask(@UserMessage String question);
+}</code></pre>
+                </div>
+                <div>
+                    <h4>The Wiring</h4>
+                    <pre><code class="language-java">@ApplicationScoped
+public class ConferenceChatService {
+
+  @Inject ChatModel chatModel;
+  @Inject ContentRetriever contentRetriever;
+
+  private ConferenceAssistant assistant;
+
+  @PostConstruct
+  void init() {
+    assistant = AiServices.builder(
+        ConferenceAssistant.class)
+      .chatModel(chatModel)
+      .contentRetriever(contentRetriever)
+      .build();
+  }
+}</code></pre>
+                </div>
+            </div>
+            <div class="box-accent" style="margin-top: 15px; text-align: center;">
+                <p>An interface with annotations becomes an AI service. LangChain4j generates the implementation at runtime.</p>
+            </div>
+            <aside class="notes">
+                <p>Step five. This is the heart of the demo. On the left, an interface. That's it. An interface with two annotations. @SystemMessage defines the AI's behavior. @UserMessage marks the parameter as the user's question. LangChain4j generates the implementation at runtime. You never write an implementation class.</p>
+                <p>On the right, the wiring. In a @PostConstruct method, we use AiServices.builder() to create the implementation. We pass the chat model and the content retriever. That's the RAG connection. When someone calls assistant.ask("What is CDI?"), LangChain4j does three things: it calls the content retriever to find relevant context from our vector store, it constructs a prompt that combines the system message, the retrieved context, and the user's question, and it sends that prompt to the chat model. The response comes back as a string.</p>
+                <p>The greeting detection is a small detail worth mentioning. If someone types "hello," we don't want to run RAG. There's nothing to retrieve. So we detect greetings and use the raw ChatModel with a warm prompt instead. It's a minor UX touch that prevents the AI from searching for "hello" in the vector store.</p>
+                <p>That's the complete RAG pipeline. Interface plus builder. The rest of the application is CDI configuration and a JAX-RS endpoint.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: Step 6 - JAX-RS Endpoint -->
+        <!-- ============================================================ -->
+        <section>
+            <h3>Step 6: Expose the Chat Endpoint</h3>
+            <pre><code class="language-java">@Path("/chat")
+public class ChatResource {
+
+    @Inject ConferenceChatService chatService;
+
+    @POST
+    @Consumes(APPLICATION_FORM_URLENCODED)
+    @Produces(TEXT_HTML)
+    public String ask(@FormParam("question") String question) {
+        String answer = chatService.ask(question);
+        return renderAnswer(question, answer);
+    }
+
+    private String renderAnswer(String question, String answer) {
+        Node document = PARSER.parse(answer);
+        String html = RENDERER.render(document);
+        return """
+            &lt;div class="chat-message"&gt;
+              &lt;div class="question"&gt;%s&lt;/div&gt;
+              &lt;div class="answer"&gt;%s&lt;/div&gt;
+            &lt;/div&gt;""".formatted(escapeHtml(question), html);
+    }
+}</code></pre>
+            <aside class="notes">
+                <p>Step six. A standard JAX-RS resource. POST endpoint, consumes form-encoded data, produces HTML. The question comes in as a form parameter from HTMX. We call the chat service, get the answer, render it, and return HTML.</p>
+                <p>The rendering is worth noting. LLMs return markdown. We need HTML for the browser. CommonMark parses the markdown and renders it to HTML server-side. The question gets HTML-escaped because user input should never be trusted. The answer doesn't need escaping because it comes from our local LLM, not from user input.</p>
+                <p>On the frontend, HTMX takes this HTML fragment and swaps it into the DOM. The hx-swap="afterbegin" attribute means new messages appear at the top. No JSON API, no client-side template rendering, no virtual DOM diffing. The server sends HTML and the browser displays it. The way the web was designed to work.</p>
+                <p>And that's it. Six steps. From a datasource definition to a working RAG chat interface. Let me show you the summary.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: The 30 Lines -->
+        <!-- ============================================================ -->
+        <section>
+            <h2>The Complete RAG Pipeline</h2>
+            <div class="box-accent" style="text-align: center;">
+                <p style="font-size: 1.3em; font-family: var(--font-display); font-weight: 900;">
+                    6 files. ~120 lines of Jakarta code.
+                </p>
+            </div>
+            <table style="margin-top: 20px;">
+                <tr>
+                    <th>File</th>
+                    <th>Purpose</th>
+                    <th>Lines</th>
+                </tr>
+                <tr>
+                    <td><code>DataSourceConfig</code></td>
+                    <td>PostgreSQL connection</td>
+                    <td>1 annotation</td>
+                </tr>
+                <tr>
+                    <td><code>EmbeddingProducers</code></td>
+                    <td>CDI beans for model + store + retriever</td>
+                    <td>~45</td>
+                </tr>
+                <tr>
+                    <td><code>DataLoader</code></td>
+                    <td>Ingest documents on startup</td>
+                    <td>~30</td>
+                </tr>
+                <tr>
+                    <td><code>ConferenceAssistant</code></td>
+                    <td>AI service interface</td>
+                    <td>~5</td>
+                </tr>
+                <tr>
+                    <td><code>ConferenceChatService</code></td>
+                    <td>Wire AI service + greeting detection</td>
+                    <td>~25</td>
+                </tr>
+                <tr>
+                    <td><code>ChatResource</code></td>
+                    <td>JAX-RS endpoint + markdown rendering</td>
+                    <td>~20</td>
+                </tr>
+            </table>
+            <aside class="notes">
+                <p>Let's count. Six Java files. Roughly 120 lines of actual application code. That's the complete RAG pipeline with vector storage, similarity search, context retrieval, and LLM-powered responses.</p>
+                <p>Compare this to a typical Python RAG stack: LangChain for orchestration, FastAPI for the HTTP layer, a separate vector database like Pinecone or Chroma, and a separate deployment pipeline for the Python service. Same functionality, but more moving parts, more languages to maintain, more deployment complexity.</p>
+                <p>Here, every file is Java. Every dependency is in your pom.xml. Every bean is managed by CDI. It deploys as a single WAR. Your existing Jakarta EE team can understand, maintain, and extend this without learning Python.</p>
+                <p>The "30 lines" in the synopsis refers to the core RAG wiring: the interface, the builder call, and the ingest method. The rest is standard Jakarta EE configuration that any Jakarta developer has written before.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- PART 4: CPU vs GPU -->
+        <!-- ============================================================ -->
+        <section>
+            <div class="section-number">04</div>
+            <h2>CPU vs GPU</h2>
+            <p class="muted">Same WAR. Zero code changes. Only OLLAMA_BASE_URL changed.</p>
+            <aside class="notes">
+                <p>Here's where the deployment story gets interesting. The same WAR file runs on both CPU-only hardware and GPU-accelerated hardware. The only thing that changes is where Ollama runs. On your dev laptop, Ollama runs on CPU. On a production server with a GPU, Ollama runs on GPU. Same WAR. Same code. Zero changes.</p>
+                <p>This is the Jakarta EE promise applied to AI. Write once, run anywhere. Your application doesn't know or care what hardware the model runs on. It just calls OLLAMA_BASE_URL. The Ollama instance behind that URL handles GPU detection and acceleration transparently.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: Benchmark Architecture -->
+        <!-- ============================================================ -->
+        <section>
+            <h2>Benchmark Architecture</h2>
+            <div class="architecture-diagram">
+                <div class="arch-box">
+                    <strong>Dev Machine</strong>
+                    CPU-only Ollama
+                </div>
+                <span class="arrow">&harr;</span>
+                <div class="arch-box" style="border-color: var(--success);">
+                    <strong>Same WAR</strong>
+                    Identical Build
+                </div>
+                <span class="arrow">&harr;</span>
+                <div class="arch-box">
+                    <strong>Prod Server</strong>
+                    GPU-accelerated Ollama
+                </div>
+            </div>
+            <div class="two-column" style="margin-top: 25px;">
+                <div class="box">
+                    <h4>Benchmark Endpoint</h4>
+                    <pre><code class="language-java">@GET @Path("/run")
+public String run() {
+  // Embed 5 text segments
+  long embStart = System.nanoTime();
+  embeddingModel.embedAll(segments);
+
+  // Generate 50-word response
+  long chatStart = System.nanoTime();
+  ChatResponse response = chatModel.chat(msg);
+
+  return JSONB.toJson(new BenchmarkResult(
+    hardware, embeddingMs, chatMs, tokensPerSec));
+}</code></pre>
+                </div>
+                <div class="box">
+                    <h4>What We Measure</h4>
+                    <ul>
+                        <li><span class="hl">Embedding latency</span> &mdash; 5 segments</li>
+                        <li><span class="hl">Chat latency</span> &mdash; 50-word response</li>
+                        <li><span class="hl">Tokens/sec</span> &mdash; throughput</li>
+                    </ul>
+                    <p class="muted" style="margin-top: 15px; font-size: 0.8em;">
+                        Results saved to <code>benchmark-results.json</code> and loaded at build time for the comparison table.
+                    </p>
+                </div>
+            </div>
+            <aside class="notes">
+                <p>The benchmark measures two operations that represent the AI workload. First, embedding five text segments. This tests the embedding model's throughput. Second, generating a fifty-word chat response. This tests the LLM's inference speed.</p>
+                <p>We measure latency in milliseconds and calculate tokens per second. The benchmark runs on CPU hardware first, saving results to a JSON file. Then the same WAR deploys against a GPU-accelerated Ollama instance, runs the same benchmark, and saves those results.</p>
+                <p>Both result sets go into a static JSON file that gets bundled into the WAR. The comparison table loads it at runtime. The methodology is simple: same code, same models, same prompts. The only variable is the hardware.</p>
+                <p>This is relevant because it demonstrates that you can develop on a laptop with CPU-only Ollama and deploy to a GPU server without changing anything in your application. The performance scales with the hardware, not the code.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: CPU vs GPU Results -->
+        <!-- ============================================================ -->
+        <section>
+            <h2>Performance Comparison</h2>
+            <div id="benchmark-slide">
+                <table>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>CPU (Dev)</th>
+                            <th>GPU (Prod)</th>
+                            <th>Speedup</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Hardware</strong></td>
+                            <td>AMD Ryzen 9, 32GB RAM</td>
+                            <td>AMD Radeon RX 7900 XTX</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>Embedding (5 segments)</td>
+                            <td class="muted">Run benchmark</td>
+                            <td class="muted">Run benchmark</td>
+                            <td class="success">-</td>
+                        </tr>
+                        <tr>
+                            <td>Chat (50 words)</td>
+                            <td class="muted">Run benchmark</td>
+                            <td class="muted">Run benchmark</td>
+                            <td class="success">-</td>
+                        </tr>
+                        <tr>
+                            <td>Tokens/sec</td>
+                            <td class="muted">Run benchmark</td>
+                            <td class="muted">Run benchmark</td>
+                            <td class="success">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p class="muted" style="text-align: center; font-size: 0.7em; margin-top: 10px; font-family: var(--font-mono);">
+                    Same WAR. Zero code changes. Only OLLAMA_BASE_URL changed.
+                </p>
+            </div>
+            <aside class="notes">
+                <p>Placeholder results until we run the actual benchmarks. I'll fill these in before the conference. But the table structure shows what we compare: embedding latency, chat latency, and tokens per second on both CPU and GPU hardware, with the speedup multiplier in the rightmost column.</p>
+                <p>The bottom note is the key takeaway. Same WAR. Zero code changes. Only OLLAMA_BASE_URL changed. That's the MicroProfile Config integration. The URL is an environment variable in Docker Compose. Change the URL, restart the container, and the same application now talks to a different Ollama instance.</p>
+                <p>In practice, you'd see the most dramatic speedup on chat inference, especially with larger models like gemma4. Embedding is already fast on CPU because nomic-embed-text is a small model. But the chat model benefits enormously from GPU acceleration.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: GPU Deployment -->
+        <!-- ============================================================ -->
+        <section>
+            <h2>GPU Deployment Strategy</h2>
+            <div class="two-column">
+                <div class="box">
+                    <h4>Dev (CPU)</h4>
+                    <pre><code class="language-yaml">environment:
+  - OLLAMA_BASE_URL=http://ollama:11434</code></pre>
+                    <p class="muted" style="font-size: 0.8em; margin-top: 10px;">
+                        Ollama runs on CPU. Good enough for development and testing.
+                    </p>
+                </div>
+                <div class="box">
+                    <h4>Prod (GPU)</h4>
+                    <pre><code class="language-yaml">environment:
+  - OLLAMA_BASE_URL=http://gpu-server:11434
+deploy:
+  resources:
+    reservations:
+      devices:
+        - capabilities: [gpu]</code></pre>
+                    <p class="muted" style="font-size: 0.8em; margin-top: 10px;">
+                        Ollama auto-detects GPU. Same WAR deployed.
+                    </p>
+                </div>
+            </div>
+            <div class="layers" style="margin-top: 15px;">
+                <p><span class="hl">MicroProfile Config</span> injects <code>OLLAMA_BASE_URL</code>. The application is hardware-agnostic. Ollama handles GPU acceleration transparently.</p>
+            </div>
+            <aside class="notes">
+                <p>Let me show you the actual deployment difference. On the left, dev configuration. OLLAMA_BASE_URL points at the Ollama container running on CPU. On the right, production configuration. The URL points at a GPU server, and the Docker Compose file requests GPU resources.</p>
+                <p>The application code is identical. MicroProfile Config injects the URL at runtime. You don't even rebuild the WAR. Same artifact, different environment variable.</p>
+                <p>Ollama automatically detects GPU hardware through CUDA or ROCm, depending on your GPU vendor. For AMD GPUs, which is what we're using, Ollama uses the ROCm backend. For NVIDIA, it uses CUDA. In both cases, the detection is automatic. You don't configure anything in Ollama itself.</p>
+                <p>This is the operational simplicity I keep coming back to. Your ops team doesn't need to learn a new deployment pattern. It's a Docker Compose file with different environment variables. The AI acceleration is an infrastructure concern, not an application concern.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- PART 5: DEPLOYMENT -->
+        <!-- ============================================================ -->
+        <section>
+            <div class="section-number">05</div>
+            <h2>Deployment</h2>
+            <p class="muted">One command to rule them all</p>
+            <aside class="notes">
+                <p>Let me show you how simple the deployment is. Everything runs in Docker Compose. Three containers. One command to start them all.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: Docker Compose -->
+        <!-- ============================================================ -->
+        <section>
+            <h2>Docker Compose</h2>
+            <div class="three-column">
+                <div class="box">
+                    <h4>PostgreSQL</h4>
+                    <p class="muted" style="font-size: 0.8em;">pgvector/pgvector:pg17</p>
+                    <ul style="font-size: 0.75em;">
+                        <li>Relational data</li>
+                        <li>Vector embeddings</li>
+                        <li>Same database</li>
+                    </ul>
+                </div>
+                <div class="box">
+                    <h4>Ollama</h4>
+                    <p class="muted" style="font-size: 0.8em;">ollama/ollama:latest</p>
+                    <ul style="font-size: 0.75em;">
+                        <li>gemma4:e2b (chat)</li>
+                        <li>nomic-embed-text (embeddings)</li>
+                        <li>Pulled on first run</li>
+                    </ul>
+                </div>
+                <div class="box">
+                    <h4>Application</h4>
+                    <p class="muted" style="font-size: 0.8em;">Multi-stage build</p>
+                    <ul style="font-size: 0.75em;">
+                        <li>Builds WAR inside Docker</li>
+                        <li>Payara Micro runtime</li>
+                        <li>No local JDK needed</li>
+                    </ul>
+                </div>
+            </div>
+            <aside class="notes">
+                <p>Three containers. PostgreSQL with pgvector for both relational data and vector embeddings. Same database, two types of data. Ollama for model inference. And the application container, built with a multi-stage Dockerfile.</p>
+                <p>The PostgreSQL image is pgvector/pgvector:pg17. It's standard PostgreSQL 17 with the vector extension pre-installed. The healthcheck ensures the app doesn't start until PostgreSQL is ready.</p>
+                <p>Ollama pulls models on first run. gemma4:e2b is about 1.6 GB. nomic-embed-text is about 274 MB. Both get cached in a Docker volume, so subsequent starts are instant.</p>
+                <p>The app container has a dependency on both postgres and ollama. It won't start until postgres is healthy and ollama is running.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: Multi-stage Dockerfile -->
+        <!-- ============================================================ -->
+        <section>
+            <h3>Multi-stage Dockerfile</h3>
+            <pre><code class="language-dockerfile">FROM eclipse-temurin:21 AS build
+WORKDIR /app
+COPY pom.xml .
+RUN ./mvnw dependency:go-offline -B
+COPY src ./src
+RUN ./mvnw clean package -DskipTests
+
+FROM eclipse-temurin:21-jre
+ARG PAYARA_VERSION=7.2026.3
+ADD https://.../payara-micro-${PAYARA_VERSION}.jar /opt/payara/
+COPY --from=build /app/target/ocx.war /opt/payara/deployments/ROOT.war
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "/opt/payara/payara-micro.jar",
+            "--deploy", "/opt/payara/deployments/ROOT.war",
+            "--nocluster"]</code></pre>
+            <div class="layers" style="margin-top: 10px;">
+                <p><span class="hl">Layer caching:</span> pom.xml changes invalidate the dependency layer. Source changes only rebuild the application layer.</p>
+            </div>
+            <aside class="notes">
+                <p>Two build stages. First stage uses Eclipse Temurin 21 to build the WAR. The trick is splitting the pom.xml copy from the src copy. Docker caches the dependency resolution layer separately. When you change source code, Docker only re-runs the package step, not the dependency download. This saves minutes on every rebuild.</p>
+                <p>Second stage uses the JRE-only image, which is smaller. Payara Micro is downloaded at build time, not runtime. The WAR is copied from the build stage. The entrypoint is a single java -jar command.</p>
+                <p>The net effect: your build server needs Docker, nothing else. No JDK, no Maven, no Payara installed on the host. Everything happens inside the container. This is the same pattern used by Cloud Native Buildpacks and Jib, but explicit and controlled.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: run.sh -->
+        <!-- ============================================================ -->
+        <section>
+            <h3>One Command: <code>./run.sh deploy</code></h3>
+            <div class="box" style="margin-top: 15px;">
+                <pre><code class="language-bash">$ ./run.sh deploy
+
+  ✓ PostgreSQL is ready
+  ✓ Enabling pgvector extension...
+  ✓ Pulling AI models (first run only)...
+  ✓ Infrastructure ready
+  ✓ Building and deploying application...
+  ✓ Application is ready
+
+  http://localhost:8080</code></pre>
+            </div>
+            <div style="margin-top: 15px; font-size: 0.8em;">
+                <p><strong>Other commands:</strong> <code>start</code>, <code>stop</code>, <code>logs</code>, <code>truncate</code>, <code>benchmark</code>, <code>clean</code></p>
+            </div>
+            <aside class="notes">
+                <p>A single shell script wraps all the Docker Compose commands. ./run.sh deploy does everything: starts PostgreSQL and Ollama, enables the pgvector extension, pulls the AI models, builds and deploys the application, and waits for it to be ready.</p>
+                <p>The other commands handle the lifecycle. truncate clears the embeddings table and re-ingests documents, useful when you update the source documents. benchmark runs the performance test against the current Ollama instance and saves results. clean removes everything including volumes, giving you a fresh start.</p>
+                <p>This is deliberate. For a conference demo, the audience should be able to go from zero to running in one command. No prerequisite setup. No manual configuration. Clone, run, done.</p>
+                <p>And in a real deployment, you'd replace this with whatever your CI/CD pipeline does. Helm chart, Kubernetes manifest, Terraform module. The application is a standard WAR. It deploys the same way everything else deploys.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- PART 6: TAKEAWAYS -->
+        <!-- ============================================================ -->
+        <section>
+            <div class="section-number">06</div>
+            <h2>Takeaways</h2>
+            <p class="muted">What you leave with</p>
+            <aside class="notes">
+                <p>Let me leave you with the concrete value propositions. Not abstract claims. Specific benefits for specific audiences.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: Why This Matters -->
+        <!-- ============================================================ -->
+        <section>
+            <h2>Why This Matters</h2>
+            <div class="two-column">
+                <div class="box-success">
+                    <h3 style="color: var(--success);">For Regulated Industries</h3>
+                    <ul>
+                        <li>Data never leaves your network</li>
+                        <li>No third-party API terms of service</li>
+                        <li>Air-gapped deployment possible</li>
+                        <li>Audit trail stays in your database</li>
+                    </ul>
+                </div>
+                <div class="box-success">
+                    <h3 style="color: var(--success);">For Operations Teams</h3>
+                    <ul>
+                        <li>Deploys like any Jakarta EE app</li>
+                        <li>No Python runtime to manage</li>
+                        <li>Docker Compose to production</li>
+                        <li>Standard monitoring and logging</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="box-accent" style="margin-top: 20px; text-align: center;">
+                <p><strong>No new deployment patterns. No new languages. No new infrastructure.</strong></p>
+            </div>
+            <aside class="notes">
+                <p>Two specific audiences. On the left, regulated industries. Healthcare, finance, government, defense. If you're in any of these sectors, sending data to an external AI API is a compliance problem. You need data residency. You need audit trails. You need to know exactly where your data goes. With local inference, the data never leaves your network. The LLM runs on your hardware. The embeddings stay in your database. No third-party terms of service to review. And air-gapped deployment is possible because everything runs locally.</p>
+                <p>On the right, operations teams. The WAR deploys the same way every other Jakarta EE application deploys. No Python runtime to manage. No pip dependencies to pin. No separate monitoring stack for the "AI service." Docker Compose to production. Standard log aggregation, standard health checks, standard everything. Your ops team doesn't need to learn anything new.</p>
+                <p>The bottom line: no new deployment patterns, no new languages, no new infrastructure. You add AI capabilities to what you already have.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: Key Takeaways -->
+        <!-- ============================================================ -->
+        <section>
+            <h2>Key Takeaways</h2>
+            <div style="margin-top: 25px;">
+                <div class="comparison-row">
+                    <div class="comparison-item">
+                        <div class="metric-large">1</div>
+                        <div class="metric-label">Complete RAG in ~120 lines<br>of Jakarta EE code</div>
+                    </div>
+                    <div class="comparison-item">
+                        <div class="metric-large">0</div>
+                        <div class="metric-label">External API calls<br>or Python dependencies</div>
+                    </div>
+                    <div class="comparison-item">
+                        <div class="metric-large">1</div>
+                        <div class="metric-label">Config change to switch<br>between CPU and GPU</div>
+                    </div>
+                </div>
+            </div>
+            <div class="layers" style="margin-top: 25px;">
+                <p><strong>Keep data private.</strong> <strong>Eliminate API costs.</strong> <strong>Deploy anywhere.</strong> Enterprise AI capabilities while maintaining monolithic simplicity.</p>
+            </div>
+            <aside class="notes">
+                <p>Three numbers to take away. 120 lines of Jakarta code for a complete RAG pipeline. That includes the CDI producers, the data loader, the AI service interface, the wiring, and the endpoint. 120 lines. Zero external API calls. The LLM runs on your hardware. The embeddings stay in your database. And one config change to move between CPU and GPU hardware. Change OLLAMA_BASE_URL, restart, done.</p>
+                <p>The bottom block captures the three promises. Keep data private because nothing leaves your network. Eliminate API costs because there's no API to call. Deploy anywhere because it's a standard WAR on a standard runtime.</p>
+                <p>This is what I mean by the intelligent monolith. Your monolith gains AI capabilities without becoming a distributed system. You don't need a microservice for AI. You don't need Python. You don't need a separate vector database. You need CDI, LangChain4j, Ollama, and pgvector. Four dependencies. All Java. All deployable as one unit.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: Resources -->
+        <!-- ============================================================ -->
+        <section>
+            <h2>Resources</h2>
+            <div class="two-column">
+                <div class="box">
+                    <h4>Source Code</h4>
+                    <ul style="font-size: 0.85em;">
+                        <li><strong>GitHub:</strong> [repo URL]</li>
+                        <li><strong>Run:</strong> <code>./run.sh deploy</code></li>
+                    </ul>
+                </div>
+                <div class="box">
+                    <h4>Documentation</h4>
+                    <ul style="font-size: 0.85em;">
+                        <li><strong>LangChain4j:</strong> docs.langchain4j.dev</li>
+                        <li><strong>Ollama:</strong> ollama.com</li>
+                        <li><strong>Jakarta EE:</strong> jakarta.ee</li>
+                        <li><strong>Payara Micro:</strong> payara.fish</li>
+                        <li><strong>pgvector:</strong> github.com/pgvector/pgvector</li>
+                    </ul>
+                </div>
+            </div>
+            <aside class="notes">
+                <p>Everything is on GitHub. Clone the repo, run ./run.sh deploy, and you have a working RAG system in about two minutes. First run takes longer because it pulls the AI models, about 2 GB total. After that, starts in seconds.</p>
+                <p>The links on the right point to the documentation for each technology. LangChain4j's docs are at docs.langchain4j.dev. Ollama's site has installation instructions for every platform. The Jakarta EE specifications are at jakarta.ee. Payara Micro documentation is on payara.fish. And pgvector is on GitHub.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: Thank You -->
+        <!-- ============================================================ -->
+        <section>
+            <h1>Thank You</h1>
+            <h3>Questions?</h3>
+            <div style="margin-top: 50px; font-size: 0.75em;">
+                <div style="text-align: center;">
+                    <span class="speaker-badge speaker-luqman">Luqman Saeed</span>
+                    <p class="muted" style="margin-top: 6px;">@luqman_saeed</p>
+                </div>
+            </div>
+            <p class="muted" style="margin-top: 30px; font-size: 0.65em;">
+                <strong>GitHub:</strong> [repo URL]
+            </p>
+            <aside class="notes">
+                <p>Thank you everyone for your time. The demo is running right now if you want to try it. The entire source code is on GitHub, MIT licensed. Clone it, modify it, use it as a starting point for your own AI-enabled Jakarta EE applications.</p>
+                <p>I'm happy to discuss the CDI portable extension details, the LangChain4j integration patterns, the benchmark methodology, or anything else about the implementation. Come find me after the session or reach out on social media.</p>
+                <p>The key message: you don't need to change your architecture to add AI. You don't need to adopt a new language. You don't need external services. Your Jakarta EE application, the one you already have, can run AI locally. Keep it simple. Keep it monolithic. Make it intelligent.</p>
+            </aside>
+        </section>
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/plugin/notes/notes.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/plugin/highlight/highlight.js"></script>
+<script>
+    Reveal.initialize({
+        hash: true,
+        slideNumber: true,
+        loop: false,
+        transition: 'slide',
+        backgroundTransition: 'fade',
+        plugins: [RevealHighlight, RevealNotes],
+        width: 1280,
+        height: 720,
+        margin: 0.1,
+        minScale: 0.2,
+        maxScale: 2.0,
+        showNotes: false
+    });
+</script>
+</body>
+</html>

@@ -59,6 +59,16 @@
                         What's new in Concurrency 3.1?
                     </button>
                 </div>
+
+                <h2 class="section-divider">Performance</h2>
+                <div class="sample-questions">
+                    <button hx-get="/api/benchmark"
+                            hx-target="#benchmark-results"
+                            hx-swap="innerHTML">
+                        CPU vs GPU
+                    </button>
+                </div>
+                <div id="benchmark-results"></div>
             </aside>
         </main>
 

@@ -200,6 +200,10 @@ main {
     align-self: start;
 }
 
+.section-divider {
+    margin-top: 1.5rem;
+}
+
 .sidebar h2 {
     font-family: var(--font-mono);
     font-size: 0.85rem;
@@ -231,6 +235,60 @@ main {
     color: var(--text-primary);
     border-color: var(--accent-dim);
     background: var(--accent-glow);
+}
+
+/* Benchmark */
+.benchmark-table {
+    margin-top: 0.75rem;
+}
+
+.benchmark-table table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+}
+
+.benchmark-table th {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    padding: 0.4rem 0.5rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+
+.benchmark-table td {
+    padding: 0.4rem 0.5rem;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border);
+}
+
+.benchmark-table .hardware td {
+    font-weight: 700;
+    color: var(--text-primary);
+    font-size: 0.75rem;
+}
+
+.benchmark-table .speedup {
+    color: var(--success);
+    font-weight: 700;
+    font-family: var(--font-mono);
+}
+
+.benchmark-note {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--accent);
+    margin-top: 0.5rem;
+    text-align: center;
+}
+
+.benchmark-error {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    padding: 0.5rem;
 }
 
 /* Footer */

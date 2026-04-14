@@ -139,6 +139,40 @@ cmd_clean() {
     ok "Cleaned"
 }
 
+cmd_benchmark() {
+    check_docker
+    if ! curl -sf http://localhost:8080/ > /dev/null 2>&1; then
+        err "Application is not running. Start with: ./run.sh deploy"
+        exit 1
+    fi
+
+    local mode="${2:-cpu}"
+    local outfile="benchmark-${mode}.json"
+
+    info "Running benchmark against current Ollama instance..."
+    info "This takes ~30 seconds (embedding + chat warmup + measurement)."
+
+    local result
+    result=$(curl -sf http://localhost:8080/api/benchmark/run)
+
+    if [ -z "$result" ]; then
+        err "Benchmark failed. Is the application running?"
+        exit 1
+    fi
+
+    local hw_desc
+    hw_desc="$(uname -m) $(grep -m1 'model name' /proc/cpuinfo 2>/dev/null | cut -d: -f2 | sed 's/^ *//' || echo 'Unknown CPU')"
+    echo "$result" | sed "s/\"fill-me-in\"/\"$hw_desc\"/" > "$outfile"
+
+    echo ""
+    ok "Results saved to $outfile"
+    echo ""
+    echo "  $result" | sed 's/^/  /'
+    echo ""
+    info "Edit $outfile to set the hardware description."
+    info "Then copy into src/main/resources/benchmark-results.json and rebuild."
+}
+
 cmd_help() {
     echo ""
     echo "  Eclipse OCX 2026 - Jakarta EE AI Assistant"
@@ -152,7 +186,7 @@ cmd_help() {
     echo "    restart   Stop and redeploy"
     echo "    truncate  Clear embeddings and re-ingest"
     echo "    logs      Tail application logs"
-    echo "    status    Show service status"
+    echo "    benchmark Run benchmark (cpu or gpu) and save results"
     echo "    clean     Remove everything including data"
     echo ""
 }
@@ -163,6 +197,7 @@ case "${1:-help}" in
     stop)     cmd_stop     ;;
     restart)  cmd_restart  ;;
     truncate) cmd_truncate ;;
+    benchmark) cmd_benchmark "$@" ;;
     logs)     cmd_logs     ;;
     status)   cmd_status   ;;
     clean)    cmd_clean    ;;

@@ -1,0 +1,14 @@
+{
+  "cpu": {
+    "hardware": "AMD Ryzen 7 8845HS, 58GB RAM (CPU only)",
+    "embeddingMs": 101,
+    "chatMs": 14743,
+    "tokensPerSec": 2.98
+  },
+  "gpu": {
+    "hardware": "AMD Radeon RX 7900 XTX, 24GB VRAM",
+    "embeddingMs": 0,
+    "chatMs": 0,
+    "tokensPerSec": 0
+  }
+}
