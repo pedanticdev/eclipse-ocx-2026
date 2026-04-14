@@ -553,7 +553,7 @@
                 <span class="arrow">&harr;</span>
                 <div class="arch-box" style="border-color: var(--danger);">
                     <strong>Virtual Threads</strong>
-                    Parallel Embedding
+                    Embedding + Concurrent Requests
                 </div>
             </div>
             <p class="muted" style="text-align: center; margin-top: 15px; font-size: 0.7em;">
@@ -609,9 +609,9 @@
                 <div class="box">
                     <h4>MicroProfile Config</h4>
                     <ul style="font-size: 0.85em;">
-                        <li>Model list and defaults</li>
-                        <li>OLLAMA_BASE_URL</li>
-                        <li>Runtime model switching</li>
+                        <li>Model defaults and available list</li>
+                        <li>Ollama base URL</li>
+                        <li>@ConfigProperty injection</li>
                     </ul>
                 </div>
             </div>
@@ -811,23 +811,25 @@ public class AiService {
     @Inject VectorSearch vectorSearch;
 
     public String ask(String question) {
+      try {
         List&lt;DocumentChunk&gt; chunks = vectorSearch.search(question, 5);
+        if (chunks.isEmpty()) return "No relevant info found.";
 
         String context = chunks.stream()
             .map(c -> "Source: " + c.getSource() + "\n" + c.getContent())
             .collect(Collectors.joining("\n\n"));
 
         String userMessage = """
-            Context:
-            %s
-
-            Question: %s
-            """.formatted(context, question);
+            Context: %s
+            Question: %s""".formatted(context, question);
 
         return modelFactory.getChatModel()
             .chat(ChatRequest.builder()
                 .messages(UserMessage.from(userMessage)).build())
             .aiMessage().text();
+      } catch (Exception e) {
+        return "Model unavailable: " + e.getMessage();
+      }
     }
 }</code></pre>
             <div class="box-accent" style="margin-top: 10px; text-align: center;">
@@ -855,6 +857,9 @@ public class ChatModelFactory {
     @Inject @ConfigProperty(name = "ollama.chat.temperature",
                             defaultValue = "0.7")
     private double temperature;
+    @Inject @ConfigProperty(name = "ollama.chat.timeout",
+                            defaultValue = "300")
+    private int timeoutSeconds;
 
     private volatile ChatModel chatModel;
     private volatile String currentModelName;
@@ -997,64 +1002,62 @@ public class ModelResource {
             <h2>The Complete Pipeline</h2>
             <div class="box-accent" style="text-align: center;">
                 <p style="font-size: 1.3em; font-family: var(--font-display); font-weight: 900;">
-                    12 files. ~200 lines of application code.
+                    18 files. All standard Jakarta EE.
                 </p>
             </div>
-            <table style="margin-top: 20px;">
+            <table style="margin-top: 20px; font-size: 0.7em;">
                 <tr>
                     <th>File</th>
                     <th>Purpose</th>
-                    <th>Lines</th>
                 </tr>
                 <tr>
-                    <td><code>DocumentChunk</code></td>
-                    <td>JPA entity with byte[] embedding</td>
-                    <td>~30</td>
+                    <td><code>DocumentChunk</code>, <code>ConferenceTalk</code>, <code>EmbeddingConverter</code></td>
+                    <td>JPA entities + byte[]/float[] conversion</td>
                 </tr>
                 <tr>
-                    <td><code>ConferenceTalk</code></td>
-                    <td>JPA entity for talk data</td>
-                    <td>~20</td>
-                </tr>
-                <tr>
-                    <td><code>Chunks</code> + <code>Talks</code></td>
-                    <td>Jakarta Data repositories</td>
-                    <td>~20</td>
+                    <td><code>Chunks</code>, <code>Talks</code></td>
+                    <td>Jakarta Data repositories (@Find, @Query)</td>
                 </tr>
                 <tr>
                     <td><code>VectorSearch</code></td>
-                    <td>Java cosine similarity</td>
-                    <td>~25</td>
+                    <td>Java cosine similarity (no vector DB)</td>
                 </tr>
                 <tr>
                     <td><code>AiService</code></td>
                     <td>Programmatic RAG pipeline</td>
-                    <td>~25</td>
                 </tr>
                 <tr>
                     <td><code>ChatModelFactory</code></td>
-                    <td>Runtime model switching</td>
-                    <td>~30</td>
+                    <td>Runtime model switching via volatile field</td>
+                </tr>
+                <tr>
+                    <td><code>EmbeddingProducer</code></td>
+                    <td>CDI producer for EmbeddingModel</td>
+                </tr>
+                <tr>
+                    <td><code>BenchmarkService</code></td>
+                    <td>Concurrent AI request benchmarking</td>
                 </tr>
                 <tr>
                     <td><code>DataLoader</code></td>
-                    <td>Virtual thread ingestion</td>
-                    <td>~35</td>
+                    <td>Virtual thread embedding ingestion</td>
                 </tr>
                 <tr>
-                    <td><code>ConcurrencyConfig</code> + <code>VirtualThreadExecutor</code></td>
-                    <td>Managed virtual thread executor</td>
-                    <td>~15</td>
+                    <td><code>ConcurrencyConfig</code>, <code>VirtualThreadExecutor</code></td>
+                    <td>@ManagedExecutorDefinition(virtual=true)</td>
                 </tr>
                 <tr>
-                    <td><code>ChatResource</code> + <code>ModelResource</code></td>
-                    <td>REST endpoints</td>
-                    <td>~30</td>
+                    <td><code>DataSourceConfig</code>, <code>ApplicationConfig</code></td>
+                    <td>DataSource + JAX-RS application</td>
+                </tr>
+                <tr>
+                    <td><code>ChatResource</code>, <code>ModelResource</code>, <code>BenchmarkResource</code></td>
+                    <td>JAX-RS endpoints (HTML + JSON)</td>
                 </tr>
             </table>
             <aside class="notes">
-                <p>12 files. About 200 lines of actual application code. Two JPA entities, two repository interfaces, a vector search class, an AI service, a model factory, a data loader with managed virtual threads, a concurrency configuration, and two REST resources.</p>
-                <p>Every file is standard Jakarta EE. Every dependency is in the pom.xml. Every bean is managed by CDI. Compare this to the Python equivalent: LangChain for orchestration, FastAPI for HTTP, a separate vector database, a separate deployment pipeline. Same functionality, more moving parts, more languages to maintain, more teams to coordinate.</p>
+                <p>18 files. All standard Jakarta EE. JPA entities, Jakarta Data repositories, vector search, AI service, model factory, CDI producers, benchmark service, data loader, managed virtual threads, REST endpoints. Every bean is managed by CDI. Every config value is injected via @ConfigProperty.</p>
+                <p>Compare this to the Python equivalent: LangChain for orchestration, FastAPI for HTTP, a separate vector database, a separate deployment pipeline. Same functionality, more moving parts, more languages to maintain, more teams to coordinate.</p>
             </aside>
         </section>
 
