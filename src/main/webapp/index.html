@@ -47,6 +47,33 @@
     <div id="chat-messages"></div>
 </div>
 
+<div class="benchmark-container">
+    <h2>Virtual Thread Benchmark</h2>
+    <p class="muted">Fire concurrent AI requests through Jakarta Concurrency managed virtual threads</p>
+    <div class="benchmark-buttons">
+        <button hx-post="/api/benchmark" hx-vals='{"preset": "5 Questions"}'
+                hx-target="#benchmark-results" hx-swap="innerHTML"
+                hx-indicator="#benchmark-loading"
+                hx-disabled-elt=".benchmark-buttons button">
+            5 Questions
+        </button>
+        <button hx-post="/api/benchmark" hx-vals='{"preset": "10 Questions"}'
+                hx-target="#benchmark-results" hx-swap="innerHTML"
+                hx-indicator="#benchmark-loading"
+                hx-disabled-elt=".benchmark-buttons button">
+            10 Questions
+        </button>
+        <button hx-post="/api/benchmark" hx-vals='{"preset": "20 Questions"}'
+                hx-target="#benchmark-results" hx-swap="innerHTML"
+                hx-indicator="#benchmark-loading"
+                hx-disabled-elt=".benchmark-buttons button">
+            20 Questions
+        </button>
+    </div>
+    <div id="benchmark-loading" class="loading">Running benchmark</div>
+    <div id="benchmark-results"></div>
+</div>
+
 <footer>
     <p>Jakarta Data repositories &middot; Virtual thread embedding &middot; Java cosine similarity &middot; Runtime model switching</p>
     <p style="margin-top: 6px;">

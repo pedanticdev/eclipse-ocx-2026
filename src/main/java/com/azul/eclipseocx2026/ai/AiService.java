@@ -8,10 +8,13 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 import java.util.List;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class AiService {
+
+    private static final Logger LOG = Logger.getLogger(AiService.class.getName());
 
     @Inject
     private ChatModelFactory modelFactory;
@@ -19,31 +22,34 @@ public class AiService {
     @Inject
     private VectorSearch vectorSearch;
 
-    private static final String SYSTEM_PROMPT = """
-            You are an assistant for the Eclipse OCX 2026 conference in Brussels.
-            Answer questions about conference talks, speakers, and Jakarta EE topics
-            using the provided context. If unsure, say so. Be concise.
-            """;
-
     public String ask(String question) {
-        List<DocumentChunk> relevantChunks = vectorSearch.search(question, 5);
+        try {
+            List<DocumentChunk> relevantChunks = vectorSearch.search(question, 5);
 
-        String context = relevantChunks.stream()
-                .map(chunk -> "Source: " + chunk.getSource() + "\n" + chunk.getContent())
-                .collect(Collectors.joining("\n\n"));
+            if (relevantChunks.isEmpty()) {
+                return "I couldn't find any relevant information for that question. Try asking about conference talks or Jakarta EE topics.";
+            }
 
-        String userMessage = """
-                Context:
-                %s
+            String context = relevantChunks.stream()
+                    .map(chunk -> "Source: " + chunk.getSource() + "\n" + chunk.getContent())
+                    .collect(Collectors.joining("\n\n"));
 
-                Question: %s
-                """.formatted(context, question);
+            String userMessage = """
+                    Context:
+                    %s
 
-        ChatResponse response = modelFactory.getChatModel().chat(
-                ChatRequest.builder()
-                        .messages(UserMessage.from(userMessage))
-                        .build());
+                    Question: %s
+                    """.formatted(context, question);
 
-        return response.aiMessage().text();
+            ChatResponse response = modelFactory.getChatModel().chat(
+                    ChatRequest.builder()
+                            .messages(UserMessage.from(userMessage))
+                            .build());
+
+            return response.aiMessage().text();
+        } catch (Exception e) {
+            LOG.warning("AI request failed for '" + question + "': " + e.getMessage());
+            return "Sorry, I couldn't process that question. The AI model may be unavailable. Error: " + e.getMessage();
+        }
     }
 }

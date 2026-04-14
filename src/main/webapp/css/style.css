@@ -1,14 +1,14 @@
 :root {
-    --bg: #0a0e17;
-    --surface: #111827;
-    --surface-raised: #1a2233;
-    --accent: #38bdf8;
-    --accent-dim: rgba(56, 189, 248, 0.12);
-    --accent-border: rgba(56, 189, 248, 0.3);
-    --text: #e2e8f0;
-    --text-muted: #94a3b8;
-    --success: #34d399;
-    --danger: #f87171;
+    --bg: #f8fafc;
+    --surface: #ffffff;
+    --surface-raised: #f1f5f9;
+    --accent: #0284c7;
+    --accent-dim: rgba(2, 132, 199, 0.08);
+    --accent-border: rgba(2, 132, 199, 0.25);
+    --text: #1e293b;
+    --text-muted: #475569;
+    --success: #16a34a;
+    --danger: #dc2626;
     --radius: 10px;
     --font-display: 'Fraunces', serif;
     --font-body: 'IBM Plex Sans', sans-serif;
@@ -29,7 +29,7 @@ body {
 header {
     text-align: center;
     padding: 40px 20px 20px;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+    border-bottom: 1px solid rgba(0,0,0,0.08);
 }
 
 header h1 {
@@ -42,7 +42,7 @@ header h1 {
 
 header p {
     color: var(--text-muted);
-    font-weight: 200;
+    font-weight: 400;
     margin-top: 6px;
     font-size: 0.9em;
 }
@@ -56,7 +56,7 @@ header p {
     gap: 10px;
     padding: 12px 20px;
     background: var(--surface);
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+    border-bottom: 1px solid rgba(0,0,0,0.08);
 }
 
 .model-bar .current-label {
@@ -172,7 +172,7 @@ header p {
 
 .answer {
     background: var(--surface);
-    border: 1px solid rgba(255,255,255,0.05);
+    border: 1px solid rgba(0,0,0,0.08);
     border-radius: var(--radius);
     padding: 16px 20px;
     line-height: 1.6;
@@ -261,7 +261,7 @@ footer {
     color: var(--text-muted);
     font-size: 0.8em;
     font-weight: 200;
-    border-top: 1px solid rgba(255,255,255,0.05);
+    border-top: 1px solid rgba(0,0,0,0.08);
     margin-top: 40px;
 }
 
@@ -281,4 +281,136 @@ footer a:hover {
 
 @keyframes spin {
     to { transform: rotate(360deg); }
+}
+
+/* Benchmark */
+
+.benchmark-container {
+    max-width: 720px;
+    margin: 0 auto 40px;
+    padding: 0 20px;
+}
+
+.benchmark-container h2 {
+    font-family: var(--font-display);
+    font-size: 1.4em;
+    font-weight: 900;
+    color: var(--accent);
+    letter-spacing: -0.02em;
+}
+
+.benchmark-container .muted {
+    color: var(--text-muted);
+    font-weight: 400;
+    margin: 6px 0 16px;
+    font-size: 0.9em;
+}
+
+.benchmark-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.benchmark-buttons button {
+    padding: 10px 22px;
+    border: 1px solid var(--accent-border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.benchmark-buttons button:hover {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.benchmark-buttons button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.benchmark-results {
+    animation: fadeIn 0.3s ease;
+}
+
+.benchmark-summary {
+    background: var(--surface);
+    border: 1px solid var(--accent-border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+}
+
+.summary-grid {
+    display: flex;
+    justify-content: space-around;
+    text-align: center;
+}
+
+.summary-item {
+    padding: 0 10px;
+}
+
+.summary-value {
+    font-family: var(--font-display);
+    font-size: 1.8em;
+    font-weight: 900;
+    color: var(--accent);
+    line-height: 1.2;
+}
+
+.summary-label {
+    font-size: 0.75em;
+    color: var(--text-muted);
+    font-weight: 200;
+    margin-top: 4px;
+}
+
+.benchmark-results table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85em;
+}
+
+.benchmark-results th {
+    background: var(--accent);
+    color: var(--bg);
+    font-weight: 700;
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 0.9em;
+}
+
+.benchmark-results td {
+    background: var(--surface);
+    padding: 8px 14px;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+
+.benchmark-results tr:last-child td {
+    border-bottom: none;
+}
+
+.benchmark-results .left-align {
+    text-align: left;
+    max-width: 280px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.benchmark-results .success {
+    color: var(--success);
+    font-weight: 700;
+}
+
+.benchmark-results .danger {
+    color: var(--danger);
+    font-weight: 700;
 }

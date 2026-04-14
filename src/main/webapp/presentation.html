@@ -848,15 +848,21 @@ public class AiService {
             <pre><code class="language-java">@ApplicationScoped
 public class ChatModelFactory {
 
+    @Inject @ConfigProperty(name = "ollama.base.url")
+    private String baseUrl;
+    @Inject @ConfigProperty(name = "ollama.chat.model")
+    private String defaultModelName;
+    @Inject @ConfigProperty(name = "ollama.chat.temperature",
+                            defaultValue = "0.7")
+    private double temperature;
+
     private volatile ChatModel chatModel;
     private volatile String currentModelName;
 
     @PostConstruct
     void init() {
-        String modelName = ConfigProvider.getConfig()
-            .getValue("ollama.chat.model", String.class);
-        this.chatModel = createChatModel(modelName);
-        this.currentModelName = modelName;
+        this.chatModel = createChatModel(defaultModelName);
+        this.currentModelName = defaultModelName;
     }
 
     public void switchModel(String modelName) {
@@ -867,14 +873,15 @@ public class ChatModelFactory {
     private ChatModel createChatModel(String name) {
         return OllamaChatModel.builder()
             .baseUrl(baseUrl).modelName(name)
-            .temperature(0.7).timeout(Duration.ofSeconds(300))
+            .temperature(temperature)
+            .timeout(Duration.ofSeconds(timeoutSeconds))
             .build();
     }
 }</code></pre>
             <aside class="notes">
-                <p>Step five. This is the feature you can't get with @RegisterAIService. The ChatModelFactory holds the current ChatModel in a volatile field. On startup, it reads the default model from MicroProfile Config. The switchModel method creates a new OllamaChatModel with the requested model name and atomically replaces the reference.</p>
-                <p>Volatile ensures visibility across threads. When one request switches the model, the next request sees the new model. Reference assignment is atomic in Java, so no synchronization needed. We never mutate the model object itself; we replace the whole reference.</p>
-                <p>The createChatModel method reads the base URL and timeout from MicroProfile Config, then builds an OllamaChatModel with the specified model name. Changing from gemma3 to mistral is one builder call. No redeployment. No restart. One HTTP POST to the /api/models endpoint.</p>
+                <p>Step five. Config values injected via @ConfigProperty, not ConfigProvider.getConfig(). The CDI approach is the idiomatic Jakarta EE pattern: type-safe, testable, and the container handles conversion and defaults.</p>
+                <p>The ChatModelFactory holds the current ChatModel in a volatile field. On startup, @PostConstruct reads the default model name from the injected field. The switchModel method creates a new OllamaChatModel and atomically replaces the reference.</p>
+                <p>Volatile ensures visibility across threads. When one request switches the model, the next request sees the new model. Reference assignment is atomic in Java, so no synchronization needed. Changing from gemma3 to mistral is one builder call. No redeployment. No restart. One HTTP POST to the /api/models endpoint.</p>
             </aside>
         </section>
 
@@ -1177,6 +1184,7 @@ assistant = AiServices.builder(
   .build();</code></pre>
                     <ul style="margin-top: 10px; font-size: 0.8em;">
                         <li>~5 lines of config</li>
+                        <li class="success">Automatic RAG pipeline and content retrieval</li>
                         <li class="danger">Cannot switch model at runtime</li>
                     </ul>
                 </div>
@@ -1203,6 +1211,42 @@ modelFactory.switchModel("mistral");
         </section>
 
         <!-- ============================================================ -->
+        <!-- SLIDE: Virtual Thread Benchmark -->
+        <!-- ============================================================ -->
+        <section>
+            <h2>Virtual Thread Benchmark</h2>
+            <pre><code class="language-java">@ApplicationScoped
+public class BenchmarkService {
+
+    @Inject @VirtualThreadExecutor
+    ManagedExecutorService executorService;
+    @Inject AiService aiService;
+
+    public BenchmarkResult run(List&lt;String&gt; questions) {
+        List&lt;CompletableFuture&lt;QuestionResult&gt;&gt; futures =
+          questions.stream()
+            .map(q -&gt; CompletableFuture.supplyAsync(
+                () -&gt; askQuestion(q), executorService))
+            .toList();
+
+        CompletableFuture.allOf(
+            futures.toArray(CompletableFuture[]::new))
+          .join();
+
+        return collectResults(futures);
+    }
+}</code></pre>
+            <div class="layers" style="margin-top: 10px;">
+                <p><span class="hl">CompletableFuture.supplyAsync</span> with managed virtual thread executor. Each AI request runs on its own virtual thread. All concurrent. No pool sizing.</p>
+            </div>
+            <aside class="notes">
+                <p>The benchmark service demonstrates virtual threads in the request path, not just at startup. Each question is submitted to the managed executor as a supplyAsync call. The executor creates a virtual thread for each one. CompletableFuture.allOf blocks until all complete, then we collect timing data.</p>
+                <p>The key difference from the DataLoader: there we submitted raw Runnables. Here we use CompletableFuture for composition. supplyAsync returns a future that holds the result, so we can collect all answers without blocking on each one individually. The join at the end is a single barrier.</p>
+                <p>In the live demo, clicking a benchmark button fires 5, 10, or 20 concurrent AI requests. The UI shows wall-clock time, average latency, min/max, and throughput in requests per second. With virtual threads, 20 concurrent requests to Ollama complete in roughly the time of the slowest single request. Without virtual threads, they'd queue on a fixed thread pool.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
         <!-- SLIDE: Live Demo Slide -->
         <!-- ============================================================ -->
         <section>
@@ -1214,21 +1258,21 @@ modelFactory.switchModel("mistral");
                     <p class="muted" style="font-size: 0.85em;">AI retrieves relevant chunks, generates answer</p>
                 </div>
                 <div class="box">
-                    <h4>2. Switch Model</h4>
-                    <p class="muted" style="font-size: 0.85em;">Click "mistral" in the model bar</p>
-                    <p class="muted" style="font-size: 0.85em;">Same question, different style</p>
+                    <h4>2. Benchmark</h4>
+                    <p class="muted" style="font-size: 0.85em;">Click "20 Questions"</p>
+                    <p class="muted" style="font-size: 0.85em;">20 concurrent virtual thread requests</p>
                 </div>
                 <div class="box">
-                    <h4>3. Ask Again</h4>
-                    <p class="muted" style="font-size: 0.85em;">Same WAR. Same deployment.</p>
-                    <p class="muted" style="font-size: 0.85em;">Different model, different answer.</p>
+                    <h4>3. Switch Model</h4>
+                    <p class="muted" style="font-size: 0.85em;">Switch to mistral mid-benchmark</p>
+                    <p class="muted" style="font-size: 0.85em;">Runtime flexibility in action</p>
                 </div>
             </div>
             <div class="layers" style="margin-top: 20px;">
-                <p><span class="hl">No redeployment. No restart. No config file change.</span> One HTTP POST swaps the model in memory.</p>
+                <p><span class="hl">Single chat. 20 concurrent requests. Runtime model switch.</span> All in one WAR, no redeployment.</p>
             </div>
             <aside class="notes">
-                <p>Live demo time. First, I'll ask a question about virtual threads. The AI retrieves relevant chunks from our vector store and generates an answer. Then I'll click the "mistral" button in the model selector. This sends a POST to /api/models. The ChatModelFactory creates a new OllamaChatModel with mistral as the model name and replaces the volatile reference. Then I'll ask the same question again. Same WAR, same deployment, but now mistral generates the answer instead of gemma3. Different tone, different style, potentially different accuracy. That's the value of runtime switching.</p>
+                <p>Live demo. Three demos in one. First, a single chat question to show the RAG pipeline. Second, the benchmark: click "20 Questions" and watch 20 concurrent virtual thread requests hit Ollama simultaneously. The wall-clock time will be close to the slowest single request, not 20x the average. That's virtual threads. Third, switch the model mid-session and see the different response style from mistral.</p>
             </aside>
         </section>
 
