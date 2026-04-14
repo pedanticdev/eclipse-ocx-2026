@@ -1,0 +1,74 @@
+[
+  {
+    "title": "The Intelligent Monolith: Supercharging Jakarta EE with Local AI",
+    "abstractText": "Build a complete RAG system inside a Jakarta EE 11 application using local LLMs. CDI integrates open-source models for semantic search and intelligent responses. Store vector embeddings alongside traditional JPA entities in PostgreSQL, implement similarity search, and generate context-aware answers within your Java ecosystem.",
+    "speakerName": "Luqman Saeed",
+    "speakerCompany": "Payara",
+    "speakerBio": "Jakarta EE Developer at Payara. Building enterprise Java applications with a bias toward simplicity.",
+    "track": "Jakarta EE",
+    "timeSlot": "Day 1, 10:00"
+  },
+  {
+    "title": "Jakarta Data 1.0: A New Era of Data Access in Java",
+    "abstractText": "Jakarta Data introduces a standard repository abstraction for Java persistence. Define data access with interfaces annotated with @Repository, get CRUD operations from BasicRepository, and write custom queries with JDQL. Works with JPA, NoSQL, and in-memory providers. This session covers the specification, practical patterns, and migration paths from raw JPA and Spring Data.",
+    "speakerName": "Otavio Santana",
+    "speakerCompany": "SouJava",
+    "speakerBio": "Java Champion and specification lead for Jakarta Data. Open source contributor and consultant.",
+    "track": "Jakarta EE",
+    "timeSlot": "Day 1, 11:30"
+  },
+  {
+    "title": "Virtual Threads in Practice: Lessons from Production",
+    "abstractText": "Virtual threads arrived in Java 21 promising millions of concurrent tasks without thread pool tuning. This session shares real-world experience: when virtual threads shine (I/O-bound services), where they stumble (pinning with synchronized blocks), and how to monitor them in production. Includes benchmarks comparing virtual threads, platform threads, and reactive frameworks on realistic workloads.",
+    "speakerName": "Cay Horstmann",
+    "speakerCompany": "San Jose State University",
+    "speakerBio": "Author of Core Java. Professor of computer science. Long-time Java educator and advocate.",
+    "track": "Core Java",
+    "timeSlot": "Day 1, 14:00"
+  },
+  {
+    "title": "Building AI Applications with LangChain4j",
+    "abstractText": "LangChain4j brings the LangChain patterns to Java. Build AI-powered applications with tool use, RAG pipelines, structured output, and multi-turn conversations. This session demonstrates integrating LLMs into Jakarta EE and Spring Boot applications, managing prompt templates, and deploying models via Ollama, OpenAI, and Azure. Includes live coding of a customer support chatbot.",
+    "speakerName": "Maxim Shchepin",
+    "speakerCompany": "Independent",
+    "speakerBio": "LangChain4j contributor and Java AI practitioner. Writes about LLM integration patterns in enterprise Java.",
+    "track": "AI & ML",
+    "timeSlot": "Day 1, 15:30"
+  },
+  {
+    "title": "From Monolith to Modular: Practical Architecture Evolution",
+    "abstractText": "Not every system needs microservices. This session shows how to evolve a monolithic Jakarta EE application into a modular architecture using CDI, Jakarta EE Lite, and clear module boundaries. Covers when to extract modules, how to enforce boundaries with build tools, and when microservices actually make sense. Real examples from enterprise projects that avoided the distributed monolith trap.",
+    "speakerName": "Sebastian Daschner",
+    "speakerCompany": "IBM",
+    "speakerBio": "Java Champion. Working on cloud-native Java applications at IBM. Author and conference speaker.",
+    "track": "Architecture",
+    "timeSlot": "Day 2, 10:00"
+  },
+  {
+    "title": "Server-Sent Events and Real-Time Updates with Jakarta REST",
+    "abstractText": "Jakarta RESTful Web Services supports Server-Sent Events for pushing real-time updates to browsers. This session covers the SSE API, backpressure handling, reconnect strategies, and comparison with WebSockets. Live demo: a stock ticker dashboard built with HTMX and Jakarta REST SSE, no JavaScript framework required.",
+    "speakerName": "Jan Supol",
+    "speakerCompany": "Oracle",
+    "speakerBio": "Jakarta REST specification lead. Software developer at Oracle working on GlassFish and Jersey.",
+    "track": "Jakarta EE",
+    "timeSlot": "Day 2, 11:30"
+  },
+  {
+    "title": "Payara Server 7: What's New in Jakarta EE 11",
+    "abstractText": "Payara Server 7 brings full Jakarta EE 11 support including Jakarta Data, Jakarta Concurrency 3.1, and virtual thread integration. This session covers new features, migration from Payara 6 and Jakarta EE 10, performance improvements, and the roadmap for Jakarta EE 12. Includes demos of Jakarta Data repositories and virtual thread executors running on Payara.",
+    "speakerName": "Ondrej Mihalyi",
+    "speakerCompany": "Payara",
+    "speakerBio": "Senior software engineer at Payara. Jakarta EE contributor and Payara documentation lead.",
+    "track": "Jakarta EE",
+    "timeSlot": "Day 2, 14:00"
+  },
+  {
+    "title": "Testcontainers for Jakarta EE Integration Testing",
+    "abstractText": "Unit tests with mocks prove your code compiles. Integration tests with Testcontainers prove your code works. This session demonstrates testing Jakarta EE applications against real PostgreSQL, Kafka, and Ollama containers. Covers Payara Micro test harness patterns, test data management, and CI pipeline optimization. Live demo: testing a RAG pipeline end-to-end with containerized LLMs.",
+    "speakerName": "Bobby Calderwood",
+    "speakerCompany": "Independent",
+    "speakerBio": "Event-driven architecture consultant. Testing advocate. Writes about quality engineering in distributed systems.",
+    "track": "Testing",
+    "timeSlot": "Day 2, 15:30"
+  }
+]

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Eclipse OCX 2026 - Jakarta EE AI Assistant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700;9..144,900&family=IBM+Plex+Sans:wght@200;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/htmx.min.js"></script>
+</head>
+<body>
+
+<header>
+    <h1>Jakarta EE AI Assistant</h1>
+    <p>Eclipse OCX 2026 Conference &middot; Powered by Jakarta Data + Virtual Threads</p>
+</header>
+
+<div class="model-bar">
+    <span>Model:</span>
+    <div id="model-status">
+        <strong>gemma3:4b</strong>
+    </div>
+    <span>&middot;</span>
+    <div class="model-buttons">
+        <button hx-post="/api/models" hx-vals='{"model": "gemma3:4b"}'
+                hx-target="#model-status" hx-swap="innerHTML">
+            gemma3:4b
+        </button>
+        <button hx-post="/api/models" hx-vals='{"model": "mistral"}'
+                hx-target="#model-status" hx-swap="innerHTML">
+            mistral
+        </button>
+    </div>
+</div>
+
+<div class="chat-container">
+    <form class="chat-form" hx-post="/api/chat" hx-target="#chat-messages" hx-swap="afterbegin"
+          hx-indicator="#loading">
+        <input type="text" name="question" placeholder="Ask about the conference or Jakarta EE..."
+               required autofocus>
+        <button type="submit">Ask</button>
+    </form>
+
+    <div id="loading" class="loading">Thinking</div>
+    <div id="chat-messages"></div>
+</div>
+
+<footer>
+    <p>Jakarta Data repositories &middot; Virtual thread embedding &middot; Java cosine similarity &middot; Runtime model switching</p>
+    <p style="margin-top: 6px;">
+        <a href="https://github.com/pedanticdev/eclipse-ocx-2026">Source Code</a>
+    </p>
+</footer>
+
+</body>
+</html>

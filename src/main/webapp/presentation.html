@@ -1,0 +1,1386 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Jakarta EE 11 Meets AI: Virtual Threads and Jakarta Data</title>
+    <link href="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/dist/reset.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/dist/reveal.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/dist/theme/black.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/plugin/highlight/monokai.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700;9..144,900&family=IBM+Plex+Sans:wght@200;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent: #38bdf8;
+            --accent-dim: rgba(56, 189, 248, 0.12);
+            --accent-border: rgba(56, 189, 248, 0.3);
+            --bg-dark: #0a0e17;
+            --bg-darker: #060a11;
+            --surface: #111827;
+            --surface-raised: #1a2233;
+            --text-light: #e2e8f0;
+            --text-muted: #94a3b8;
+            --success: #34d399;
+            --danger: #f87171;
+            --warn: #fbbf24;
+            --code-bg: #0f1623;
+            --font-display: 'Fraunces', serif;
+            --font-body: 'IBM Plex Sans', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        .reveal {
+            font-family: var(--font-body);
+            background: var(--bg-dark);
+            font-size: 26px;
+            line-height: 1.4;
+            color: var(--text-light);
+            font-weight: 400;
+        }
+
+        .reveal h1 {
+            font-family: var(--font-display);
+            color: var(--accent);
+            text-transform: none;
+            font-size: 2.4em;
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+        }
+
+        .reveal h2 {
+            font-family: var(--font-display);
+            color: var(--accent);
+            text-transform: none;
+            font-size: 1.7em;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        .reveal h3 {
+            font-family: var(--font-body);
+            color: #c8c8cc;
+            text-transform: none;
+            font-size: 1.15em;
+            font-weight: 600;
+            letter-spacing: 0;
+        }
+
+        .reveal h4 {
+            font-family: var(--font-body);
+            font-size: 0.95em;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .reveal p { font-weight: 200; }
+        .reveal strong, .reveal b { font-weight: 700; }
+
+        .reveal .section-number {
+            font-family: var(--font-display);
+            font-size: 6em;
+            font-weight: 900;
+            color: var(--accent-dim);
+            line-height: 1;
+            margin-bottom: -10px;
+        }
+
+        .reveal code {
+            font-family: var(--font-mono);
+            background: var(--surface);
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: var(--accent);
+            font-size: 0.85em;
+        }
+
+        .reveal pre { margin: 15px 0; }
+
+        .reveal pre code {
+            background: var(--code-bg);
+            padding: 16px 20px;
+            font-size: 0.75em;
+            line-height: 1.45;
+            border: 1px solid var(--accent-border);
+            border-radius: 8px;
+            color: #e0e0e0;
+        }
+
+        .reveal .two-column pre code {
+            font-size: 0.65em;
+            padding: 10px 12px;
+            line-height: 1.35;
+        }
+
+        .reveal .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin: 10px 0;
+        }
+
+        .reveal .three-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 18px;
+            margin: 10px 0;
+        }
+
+        .reveal .box {
+            background: var(--surface);
+            border: 1px solid var(--accent-border);
+            border-radius: 12px;
+            padding: 20px 24px;
+        }
+
+        .reveal .box h3, .reveal .box h4 { margin-top: 0; }
+
+        .reveal .box-accent {
+            background: var(--accent-dim);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 20px 24px;
+        }
+
+        .reveal .box-success {
+            background: rgba(52, 211, 153, 0.08);
+            border: 1px solid rgba(52, 211, 153, 0.3);
+            border-radius: 12px;
+            padding: 20px 24px;
+        }
+
+        .reveal .box-danger {
+            background: rgba(248, 113, 113, 0.08);
+            border: 1px solid rgba(248, 113, 113, 0.3);
+            border-radius: 12px;
+            padding: 20px 24px;
+        }
+
+        .reveal table {
+            font-size: 0.75em;
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        .reveal table th {
+            background: var(--accent);
+            color: var(--bg-dark);
+            font-weight: 700;
+            padding: 10px 14px;
+            text-align: left;
+            border-radius: 4px;
+        }
+
+        .reveal table td {
+            background: var(--surface);
+            padding: 8px 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .reveal table tr:last-child td { border-bottom: none; }
+
+        .reveal ul, .reveal ol { font-size: 0.82em; }
+        .reveal li { margin-bottom: 6px; }
+
+        .reveal .hl { color: var(--accent); font-weight: 700; }
+        .reveal .success { color: var(--success); font-weight: 700; }
+        .reveal .danger { color: var(--danger); font-weight: 700; }
+        .reveal .warn { color: var(--warn); font-weight: 700; }
+        .reveal .muted { color: var(--text-muted); font-weight: 200; }
+
+        .reveal .metric-large {
+            font-family: var(--font-display);
+            font-size: 3.5em;
+            font-weight: 900;
+            color: var(--accent);
+            line-height: 1;
+        }
+
+        .reveal .metric-label {
+            font-size: 0.8em;
+            color: var(--text-muted);
+            font-weight: 200;
+            margin-top: 8px;
+        }
+
+        .reveal .comparison-row {
+            display: flex;
+            justify-content: space-around;
+            margin: 25px 0;
+        }
+
+        .reveal .comparison-item {
+            text-align: center;
+            padding: 15px 25px;
+        }
+
+        .reveal .architecture-diagram {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin: 25px 0;
+            flex-wrap: wrap;
+        }
+
+        .reveal .arch-box {
+            background: var(--surface);
+            border: 2px solid var(--accent-border);
+            border-radius: 10px;
+            padding: 14px 18px;
+            min-width: 100px;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .reveal .arch-box strong {
+            color: var(--accent);
+            display: block;
+            font-size: 0.9em;
+        }
+
+        .reveal .arrow {
+            font-size: 1.6em;
+            color: var(--accent);
+            font-weight: 200;
+        }
+
+        .reveal .layers {
+            background: var(--surface);
+            border-left: 4px solid var(--accent);
+            padding: 18px 24px;
+            margin: 18px 0;
+            text-align: left;
+            font-size: 0.85em;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .reveal .speaker-badge {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.7em;
+            font-weight: 700;
+            font-family: var(--font-body);
+        }
+
+        .reveal .speaker-luqman {
+            background: rgba(56, 189, 248, 0.2);
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+
+        .reveal .speaker-card {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: var(--surface);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin: 10px 0;
+        }
+
+        .reveal .speaker-card .speaker-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-display);
+            font-size: 1.6em;
+            font-weight: 900;
+            flex-shrink: 0;
+        }
+
+        .reveal .speaker-card .speaker-info h4 {
+            margin: 0 0 4px 0;
+            color: var(--accent);
+        }
+
+        .reveal .speaker-card .speaker-info p {
+            margin: 0;
+            font-size: 0.85em;
+            color: var(--text-muted);
+            font-weight: 200;
+        }
+
+        .reveal .agenda-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin: 12px 0;
+            font-size: 0.85em;
+        }
+
+        .reveal .agenda-num {
+            font-family: var(--font-display);
+            font-size: 1.4em;
+            font-weight: 900;
+            color: var(--accent);
+            min-width: 40px;
+        }
+
+        .reveal aside.notes {
+            font-size: 0.7em;
+            line-height: 1.5;
+        }
+
+        .reveal .no-badge {
+            display: inline-block;
+            padding: 6px 18px;
+            border-radius: 20px;
+            font-size: 0.7em;
+            font-weight: 700;
+            font-family: var(--font-mono);
+        }
+
+        .reveal .badge-danger {
+            background: rgba(248, 113, 113, 0.15);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
+        .reveal .badge-success {
+            background: rgba(52, 211, 153, 0.15);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+    </style>
+</head>
+<body>
+<div class="reveal">
+    <div class="slides">
+
+        <!-- ============================================================ -->
+        <!-- SLIDE 1: Title -->
+        <!-- ============================================================ -->
+        <section>
+            <h1 style="font-size: 1.9em;">Jakarta EE 11 Meets AI</h1>
+            <h3 style="color: var(--accent); font-weight: 200; margin-top: 10px;">Building Intelligent Microservices with Virtual Threads and Jakarta Data</h3>
+            <div style="margin-top: 50px; display: flex; gap: 40px; justify-content: center; font-size: 0.75em;">
+                <div style="text-align: center;">
+                    <span class="speaker-badge speaker-luqman">Luqman Saeed</span>
+                    <p class="muted" style="margin-top: 6px;">Jakarta EE Developer, Payara</p>
+                </div>
+            </div>
+            <p class="muted" style="margin-top: 30px; font-size: 0.65em;">Eclipse OCX 2026 &middot; Brussels</p>
+            <aside class="notes">
+                <p>Welcome. I'm Luqman, I work at Payara on the Jakarta EE platform team. This session is about proving that the "boring" enterprise Java stack is the smartest choice for AI workloads. Not because I'm nostalgic. Because it actually works better for production AI than the alternatives everyone keeps recommending.</p>
+                <p>The premise: thread pools are crying, vector data doesn't fit traditional databases, and everyone says switch to Python. Sound familiar? I'm going to show you why you don't need to. We'll build a complete RAG microservice using Jakarta Data, virtual threads, and Java cosine similarity. Zero external vector database. Zero Python. Runtime model switching without redeployment.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE 2: About the Speaker -->
+        <!-- ============================================================ -->
+        <section>
+            <h2>About the Speaker</h2>
+            <div class="speaker-card" style="max-width: 600px; margin: 20px auto;">
+                <div class="speaker-avatar" style="background: rgba(56,189,248,0.2); color: var(--accent);">LS</div>
+                <div class="speaker-info">
+                    <h4>Luqman Saeed</h4>
+                    <p>Jakarta EE Developer, Payara</p>
+                    <p style="margin-top: 6px; font-size: 0.9em; color: var(--text-light);">Building enterprise Java applications. Writes about Jakarta EE, server-side rendering, and keeping things simple.</p>
+                </div>
+            </div>
+            <aside class="notes">
+                <p>Quick intro. I work at Payara on the platform team. My bias: simplicity wins. Server-side rendering over SPAs. Modular monoliths over microservices. And today I'm making the case that standard Jakarta EE specs compose naturally with AI workloads, no special frameworks required.</p>
+                <p>This is my second talk today. The first one, "The Intelligent Monolith," built a RAG system inside a monolithic WAR using PgVector and CDI producers. This talk takes a different angle: Jakarta Data repositories for data access, virtual threads for concurrency, and Java-based cosine similarity instead of a vector database extension.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE 3: Agenda -->
+        <!-- ============================================================ -->
+        <section>
+            <h2>Agenda</h2>
+            <div class="agenda-item">
+                <span class="agenda-num">1</span>
+                <div><strong>The Claim</strong> &mdash; Boring stack, smart AI</div>
+            </div>
+            <div class="agenda-item">
+                <span class="agenda-num">2</span>
+                <div><strong>The Stack</strong> &mdash; Jakarta Data, Virtual Threads, Java Cosine Similarity</div>
+            </div>
+            <div class="agenda-item">
+                <span class="agenda-num">3</span>
+                <div><strong>Live Build</strong> &mdash; From empty WAR to RAG in 7 steps</div>
+            </div>
+            <div class="agenda-item">
+                <span class="agenda-num">4</span>
+                <div><strong>Virtual Threads</strong> &mdash; Why they matter for AI</div>
+            </div>
+            <div class="agenda-item">
+                <span class="agenda-num">5</span>
+                <div><strong>Runtime Switching</strong> &mdash; Swap models without redeploying</div>
+            </div>
+            <div class="agenda-item">
+                <span class="agenda-num">6</span>
+                <div><strong>Takeaways</strong> &mdash; What you leave with</div>
+            </div>
+            <aside class="notes">
+                <p>Six sections. We start with the claim: the boring Java stack might be the smartest choice. Then the stack, five technologies doing one thing each. The live build is the main event: seven incremental steps, each adding one capability. After that, a deep dive on virtual threads and why they're a game-changer for I/O-bound AI workloads. Then runtime model switching, which you literally cannot do with the declarative approach. Close with concrete takeaways.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- PART 1: THE CLAIM -->
+        <!-- ============================================================ -->
+        <section>
+            <div class="section-number">01</div>
+            <h2>The Claim</h2>
+            <p class="muted">Boring stack. Smart AI.</p>
+            <aside class="notes">
+                <p>Let me set the stage. The standard narrative: you want AI, you need Python, a vector database, a separate service, and a thread pool tuned to your CPU cores. I'm going to challenge every one of those assumptions with working code.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: The Problem -->
+        <!-- ============================================================ -->
+        <section>
+            <h2>The Problem</h2>
+            <div class="three-column">
+                <div class="box-danger">
+                    <h3 style="color: var(--danger);">Thread Pools</h3>
+                    <ul>
+                        <li>Fixed pool sizing for AI I/O</li>
+                        <li>One blocking call = one pinned thread</li>
+                        <li>50 concurrent requests = 50MB of stack</li>
+                    </ul>
+                </div>
+                <div class="box-danger">
+                    <h3 style="color: var(--danger);">Vector Data</h3>
+                    <ul>
+                        <li>768 floats per embedding</li>
+                        <li>Don't fit JPA entities</li>
+                        <li>"Need a vector database"</li>
+                    </ul>
+                </div>
+                <div class="box-danger">
+                    <h3 style="color: var(--danger);">Python Dependency</h3>
+                    <ul>
+                        <li>All examples in Python</li>
+                        <li>Separate team, deploy, monitor</li>
+                        <li>Context-switching tax</li>
+                    </ul>
+                </div>
+            </div>
+            <aside class="notes">
+                <p>Three problems I keep hearing. Thread pools: your Java app makes blocking HTTP calls to the LLM. Each call ties up a platform thread for seconds. Pool too small? Requests queue. Pool too big? You run out of memory. Vector data: embeddings are arrays of 768 floats. JPA doesn't have a vector column type, so people say you need a vector database. Python: every AI tutorial is Python. Your team writes Java. Now you need two ecosystems.</p>
+                <p>None of these are unsolvable. They're architectural decisions, and the standard answers are overengineered.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: The Counter-Claim -->
+        <!-- ============================================================ -->
+        <section>
+            <h2 style="font-size: 1.4em;">The Boring Stack is the Smartest Choice</h2>
+            <div class="comparison-row">
+                <div class="comparison-item">
+                    <span class="no-badge badge-danger">No Vector DB</span>
+                </div>
+                <div class="comparison-item">
+                    <span class="no-badge badge-danger">No Python</span>
+                </div>
+                <div class="comparison-item">
+                    <span class="no-badge badge-danger">No Thread Pool Tuning</span>
+                </div>
+            </div>
+            <div class="box-accent" style="text-align: center; margin-top: 15px;">
+                <p style="font-size: 1.05em;">Virtual threads handle concurrency. Jakarta Data handles persistence. Java handles similarity. <strong>Same spec, new capabilities.</strong></p>
+            </div>
+            <aside class="notes">
+                <p>Three things you won't need. No separate vector database. Embeddings are stored as byte arrays in a JPA entity, queried through Jakarta Data repositories. Similarity search is 15 lines of Java. No Python. LangChain4j is the Java-native equivalent of Python's LangChain. No thread pool tuning. Virtual threads on Java 21 give you millions of concurrent tasks without configuring a single pool size.</p>
+                <p>This is the counter-claim. Your existing Jakarta EE knowledge, the stuff your team already knows, composes naturally with AI workloads. You don't need to learn a new stack. You need to use the one you have correctly.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- PART 2: THE STACK -->
+        <!-- ============================================================ -->
+        <section>
+            <div class="section-number">02</div>
+            <h2>The Stack</h2>
+            <p class="muted">Jakarta Data, Virtual Threads, Java Cosine Similarity</p>
+            <aside class="notes">
+                <p>Five technologies. Each does one thing. If you're running Jakarta EE 11 on Java 21, you already have four of them. You just need Ollama for model inference.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: Architecture -->
+        <!-- ============================================================ -->
+        <section>
+            <h2>Architecture</h2>
+            <div class="architecture-diagram">
+                <div class="arch-box">
+                    <strong>Browser</strong>
+                    HTML + HTMX
+                </div>
+                <span class="arrow">&rarr;</span>
+                <div class="arch-box">
+                    <strong>Payara Micro</strong>
+                    JAX-RS + CDI
+                </div>
+                <span class="arrow">&rarr;</span>
+                <div class="arch-box">
+                    <strong>AiService</strong>
+                    Programmatic RAG
+                </div>
+                <span class="arrow">&rarr;</span>
+                <div class="arch-box">
+                    <strong>Ollama</strong>
+                    Local LLM
+                </div>
+            </div>
+            <div class="architecture-diagram" style="margin-top: 10px;">
+                <div class="arch-box" style="border-color: var(--success);">
+                    <strong>PostgreSQL</strong>
+                    Jakarta Data Repositories
+                </div>
+                <span class="arrow">&harr;</span>
+                <div class="arch-box" style="border-color: var(--warn);">
+                    <strong>VectorSearch</strong>
+                    Java Cosine Similarity
+                </div>
+                <span class="arrow">&harr;</span>
+                <div class="arch-box" style="border-color: var(--danger);">
+                    <strong>Virtual Threads</strong>
+                    Parallel Embedding
+                </div>
+            </div>
+            <p class="muted" style="text-align: center; margin-top: 15px; font-size: 0.7em;">
+                No vector database extension. Embeddings stored as BLOB. Similarity computed in Java.
+            </p>
+            <aside class="notes">
+                <p>Two layers. Top row is the request flow: browser to Payara to AiService to Ollama. Bottom row is the data layer: PostgreSQL with Jakarta Data repositories for persistence, VectorSearch for similarity, virtual threads for parallelism.</p>
+                <p>No PgVector extension. No separate vector database. Embeddings are stored as byte arrays in a standard JPA entity. The VectorSearch class loads all chunks from the repository, computes cosine similarity against the query embedding in Java, and returns the top matches. For a few hundred chunks, this is instantaneous. For production scale with millions of vectors, you'd want a vector database. But for conference Q&A and internal tools, this is sufficient.</p>
+                <p>Virtual threads generate all embeddings in parallel at startup. 42 chunks, 42 concurrent HTTP calls to Ollama, each on its own virtual thread. Total time: about 2 seconds.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: Jakarta EE 11 Stack -->
+        <!-- ============================================================ -->
+        <section>
+            <h2>Jakarta EE 11 Stack</h2>
+            <div class="three-column">
+                <div class="box">
+                    <h4>Jakarta Data 1.0</h4>
+                    <ul style="font-size: 0.85em;">
+                        <li>@Repository interfaces</li>
+                        <li>BasicRepository CRUD</li>
+                        <li>@Find and @Query methods</li>
+                    </ul>
+                </div>
+                <div class="box">
+                    <h4>Concurrency 3.1</h4>
+                    <ul style="font-size: 0.85em;">
+                        <li>@ManagedExecutorDefinition</li>
+                        <li>virtual = true</li>
+                        <li>Container-managed lifecycle</li>
+                    </ul>
+                </div>
+                <div class="box">
+                    <h4>CDI 4.1</h4>
+                    <ul style="font-size: 0.85em;">
+                        <li>ChatModelFactory</li>
+                        <li>EmbeddingModel producer</li>
+                        <li>Application-scoped beans</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="two-column" style="margin-top: 15px;">
+                <div class="box">
+                    <h4>JAX-RS + HTMX</h4>
+                    <ul style="font-size: 0.85em;">
+                        <li>Chat endpoint</li>
+                        <li>Model switching endpoint</li>
+                        <li>Server-rendered HTML</li>
+                    </ul>
+                </div>
+                <div class="box">
+                    <h4>MicroProfile Config</h4>
+                    <ul style="font-size: 0.85em;">
+                        <li>Model list and defaults</li>
+                        <li>OLLAMA_BASE_URL</li>
+                        <li>Runtime model switching</li>
+                    </ul>
+                </div>
+            </div>
+            <aside class="notes">
+                <p>Jakarta Data is the headline feature. @Repository interfaces give you CRUD plus custom queries with zero implementation code. BasicRepository provides save, delete, findById, findAll. @Find generates automatic queries from method parameters. @Query accepts JDQL for anything more complex.</p>
+                <p>Jakarta Concurrency 3.1 supports virtual threads via @ManagedExecutorDefinition with virtual = true. The container manages the executor lifecycle and propagates Jakarta EE context to virtual threads automatically. We inject it with a CDI qualifier and call submit. No raw JDK Executors. CDI wires everything as application-scoped beans. The ChatModelFactory is a CDI bean with volatile fields for thread-safe model switching. MicroProfile Config externalizes model names and the Ollama URL.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: What We Don't Use -->
+        <!-- ============================================================ -->
+        <section>
+            <h2>What We Don't Use</h2>
+            <div class="two-column">
+                <div class="box">
+                    <h4>Not Used</h4>
+                    <ul style="font-size: 0.85em;">
+                        <li><span class="danger">PgVector</span> &mdash; no vector DB extension</li>
+                        <li><span class="danger">langchain4j-cdi-ext</span> &mdash; no CDI portable extension</li>
+                        <li><span class="danger">@RegisterAIService</span> &mdash; no declarative AI service</li>
+                        <li><span class="danger">EmbeddingStore</span> &mdash; no LangChain4j vector store</li>
+                    </ul>
+                </div>
+                <div class="box">
+                    <h4>Instead</h4>
+                    <ul style="font-size: 0.85em;">
+                        <li><span class="success">byte[] in JPA entity</span> &mdash; embeddings as BLOB</li>
+                        <li><span class="success">Programmatic models</span> &mdash; full control</li>
+                        <li><span class="success">VectorSearch</span> &mdash; 15 lines of cosine similarity</li>
+                        <li><span class="success">Jakarta Data</span> &mdash; repository queries</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="layers" style="margin-top: 15px;">
+                <p>More code, but <span class="hl">zero magic</span>. Every step is visible, debuggable, and replaceable.</p>
+            </div>
+            <aside class="notes">
+                <p>This is the deliberate architectural difference from the declarative approach. In my first talk, I used @RegisterAIService, LangChain4j's CDI extension, and PgVector. Four lines of configuration gave you a working RAG pipeline. But that approach has a ceiling: you can't swap models at runtime because the CDI extension creates the service at deployment time.</p>
+                <p>This talk trades convenience for control. We build RAG from scratch: embed the query, find similar chunks, build the prompt, call the model. About 30 more lines of code. But we gain runtime model switching, database-persistent embeddings, and a complete understanding of every moving part. No generated code. No framework-specific annotations beyond standard Jakarta.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- PART 3: LIVE BUILD -->
+        <!-- ============================================================ -->
+        <section>
+            <div class="section-number">03</div>
+            <h2>Live Build</h2>
+            <p class="muted">From empty WAR to RAG in 7 steps</p>
+            <aside class="notes">
+                <p>The main event. Seven steps. Each adds one capability. By step 7, you have a complete RAG microservice with runtime model switching. I'll show the actual code, explain the design decisions, and highlight where Jakarta specs do the heavy lifting.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: Step 1 - Entities -->
+        <!-- ============================================================ -->
+        <section>
+            <h3>Step 1: JPA Entities with Embeddings</h3>
+            <div class="two-column">
+                <div>
+                    <h4>DocumentChunk</h4>
+                    <pre><code class="language-java">@Entity
+@Table(name = "document_chunks")
+public class DocumentChunk {
+
+  @Id @GeneratedValue(strategy = IDENTITY)
+  private Long id;
+
+  @Column(nullable = false, length = 2000)
+  private String content;
+  private String source;
+  private String title;
+
+  @Lob @Column(columnDefinition = "bytea")
+  private byte[] embedding;
+
+  public float[] getEmbeddingVector() {
+    return EmbeddingConverter.toFloatArray(embedding);
+  }
+
+  public void setEmbeddingVector(float[] v) {
+    this.embedding = EmbeddingConverter.toByteArray(v);
+  }
+}</code></pre>
+                </div>
+                <div>
+                    <h4>ConferenceTalk</h4>
+                    <pre><code class="language-java">@Entity
+@Table(name = "conference_talks")
+public class ConferenceTalk {
+
+  @Id @GeneratedValue(strategy = IDENTITY)
+  private Long id;
+  private String title;
+  @Column(length = 2000)
+  private String abstractText;
+  private String speakerName;
+  private String speakerCompany;
+  @Column(length = 1000)
+  private String speakerBio;
+  private String track;
+  private String timeSlot;
+}</code></pre>
+                </div>
+            </div>
+            <aside class="notes">
+                <p>Step one. Two entities. DocumentChunk stores the text segments and their embeddings. ConferenceTalk stores structured conference data.</p>
+                <p>The embedding field is byte[], stored as PostgreSQL's bytea type. The float[] conversion happens through EmbeddingConverter, a utility with two static methods: toByteArray and toFloatArray, using ByteBuffer. The JPA entity doesn't know about vectors. It stores bytes. The conversion is a concern of the VectorSearch class, not the persistence layer.</p>
+                <p>ConferenceTalk is a standard JPA entity. Title, abstract, speaker info, track, time slot. Nothing AI-specific. This entity gets seeded from talks.json and then converted into text chunks for embedding.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: Step 2 - Jakarta Data Repositories -->
+        <!-- ============================================================ -->
+        <section>
+            <h3>Step 2: Jakarta Data Repositories</h3>
+            <pre><code class="language-java">@Repository
+public interface Chunks extends BasicRepository&lt;DocumentChunk, Long&gt; {
+
+    @Find
+    List&lt;DocumentChunk&gt; findBySource(String source);
+
+    @Query("where source like :pattern order by id asc")
+    List&lt;DocumentChunk&gt; findBySourceLike(@Param("pattern") String pattern);
+
+    @Query("select count(this) where source = :source")
+    long countBySource(@Param("source") String source);
+}
+
+@Repository
+public interface Talks extends BasicRepository&lt;ConferenceTalk, Long&gt; {
+
+    @Find
+    List&lt;ConferenceTalk&gt; findByTrack(String track);
+
+    @Query("where title like :pattern or abstractText like :pattern")
+    List&lt;ConferenceTalk&gt; search(@Param("pattern") String pattern);
+}</code></pre>
+            <div class="layers" style="margin-top: 15px;">
+                <p><span class="hl">No implementation class.</span> Payara generates one at runtime. <code>BasicRepository</code> gives CRUD. <code>@Find</code> and <code>@Query</code> add custom methods.</p>
+            </div>
+            <aside class="notes">
+                <p>Step two. This is where Jakarta Data shines. Two interfaces, zero implementation classes. Chunks extends BasicRepository, which gives us save, delete, findById, findAll, and more for free. Then we add three custom methods: findBySource for loading chunks by origin, findBySourceLike for pattern matching, and countBySource for the duplicate guard in DataLoader.</p>
+                <p>Talks is even simpler. findByTrack and a search method that does LIKE matching on title and abstract. JDQL is the query language for Jakarta Data, similar to JPQL but simpler.</p>
+                <p>Payara generates the implementation at deployment time. You never write a DAO class. You never write a JPQL query string for basic operations. The repository is the abstraction layer between your domain logic and the database.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: Step 3 - VectorSearch -->
+        <!-- ============================================================ -->
+        <section>
+            <h3>Step 3: Java Cosine Similarity</h3>
+            <pre><code class="language-java">@ApplicationScoped
+public class VectorSearch {
+
+    @Inject Chunks chunks;
+    @Inject EmbeddingModel embeddingModel;
+
+    public List&lt;DocumentChunk&gt; search(String query, int maxResults) {
+        float[] queryVec = embeddingModel.embed(query).content().vector();
+
+        return chunks.findAll().toList().stream()
+            .filter(c -> c.getEmbedding() != null)
+            .map(c -> new SimilarityResult(c,
+                cosineSimilarity(queryVec, c.getEmbeddingVector())))
+            .sorted(comparingDouble(SimilarityResult::score).reversed())
+            .limit(maxResults)
+            .map(SimilarityResult::chunk)
+            .toList();
+    }
+
+    static double cosineSimilarity(float[] a, float[] b) { /* 15 lines */ }
+}</code></pre>
+            <div class="layers" style="margin-top: 10px;">
+                <p><span class="hl">No vector database.</span> Load chunks from Jakarta Data repository, compute similarity in Java. 15 lines of math replaces an entire infrastructure dependency.</p>
+            </div>
+            <aside class="notes">
+                <p>Step three. The VectorSearch class is the replacement for PgVector, Pinecone, Weaviate, or any vector database. It embeds the query using the Ollama embedding model, loads all chunks from the Chunks repository, computes cosine similarity between the query vector and each chunk's stored vector, sorts by score, and returns the top results.</p>
+                <p>The cosineSimilarity method is pure math: dot product divided by the product of magnitudes. 15 lines. Returns a score between 0 and 1 where 1 means identical. The SimilarityResult record pairs each chunk with its score for sorting.</p>
+                <p>Tradeoff: this loads all chunks into memory. For 42 chunks, that's negligible. For 42 million, you'd want a vector database with an index. But for the vast majority of internal AI tools, conference assistants, documentation Q&A systems, this approach is sufficient and avoids an entire infrastructure dependency.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: Step 4 - AiService -->
+        <!-- ============================================================ -->
+        <section>
+            <h3>Step 4: Programmatic RAG</h3>
+            <pre><code class="language-java">@ApplicationScoped
+public class AiService {
+
+    @Inject ChatModelFactory modelFactory;
+    @Inject VectorSearch vectorSearch;
+
+    public String ask(String question) {
+        List&lt;DocumentChunk&gt; chunks = vectorSearch.search(question, 5);
+
+        String context = chunks.stream()
+            .map(c -> "Source: " + c.getSource() + "\n" + c.getContent())
+            .collect(Collectors.joining("\n\n"));
+
+        String userMessage = """
+            Context:
+            %s
+
+            Question: %s
+            """.formatted(context, question);
+
+        return modelFactory.getChatModel()
+            .chat(ChatRequest.builder()
+                .messages(UserMessage.from(userMessage)).build())
+            .aiMessage().text();
+    }
+}</code></pre>
+            <div class="box-accent" style="margin-top: 10px; text-align: center;">
+                <p>Embed query &rarr; find similar chunks &rarr; build prompt &rarr; call LLM. <strong>~25 lines. Zero framework magic.</strong></p>
+            </div>
+            <aside class="notes">
+                <p>Step four. The AiService is the entire RAG pipeline in one method. First, VectorSearch finds the 5 most similar chunks. Then we format them as context with source labels. Then we build a user message that combines the context and the question. Finally, we call the chat model through ChatModelFactory and return the response text.</p>
+                <p>Compare this to the declarative approach from my first talk: an interface with @SystemMessage, wired by AiServices.builder(). That's 5 lines. This is 25. The tradeoff: 25 lines you can debug, modify, and extend without framework constraints. Want to add a minimum relevance threshold? Add an if statement. Want to log which chunks were retrieved? Add a log statement. Want to change the prompt format at runtime? It's a string template, not an annotation.</p>
+                <p>And critically: the ChatModelFactory enables runtime model switching, which the declarative approach cannot do.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: Step 5 - ChatModelFactory -->
+        <!-- ============================================================ -->
+        <section>
+            <h3>Step 5: Runtime Model Switching</h3>
+            <pre><code class="language-java">@ApplicationScoped
+public class ChatModelFactory {
+
+    private volatile ChatModel chatModel;
+    private volatile String currentModelName;
+
+    @PostConstruct
+    void init() {
+        String modelName = ConfigProvider.getConfig()
+            .getValue("ollama.chat.model", String.class);
+        this.chatModel = createChatModel(modelName);
+        this.currentModelName = modelName;
+    }
+
+    public void switchModel(String modelName) {
+        this.chatModel = createChatModel(modelName);
+        this.currentModelName = modelName;
+    }
+
+    private ChatModel createChatModel(String name) {
+        return OllamaChatModel.builder()
+            .baseUrl(baseUrl).modelName(name)
+            .temperature(0.7).timeout(Duration.ofSeconds(300))
+            .build();
+    }
+}</code></pre>
+            <aside class="notes">
+                <p>Step five. This is the feature you can't get with @RegisterAIService. The ChatModelFactory holds the current ChatModel in a volatile field. On startup, it reads the default model from MicroProfile Config. The switchModel method creates a new OllamaChatModel with the requested model name and atomically replaces the reference.</p>
+                <p>Volatile ensures visibility across threads. When one request switches the model, the next request sees the new model. Reference assignment is atomic in Java, so no synchronization needed. We never mutate the model object itself; we replace the whole reference.</p>
+                <p>The createChatModel method reads the base URL and timeout from MicroProfile Config, then builds an OllamaChatModel with the specified model name. Changing from gemma3 to mistral is one builder call. No redeployment. No restart. One HTTP POST to the /api/models endpoint.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: Step 6 - Virtual Thread Ingestion -->
+        <!-- ============================================================ -->
+        <section>
+            <h3>Step 6: Virtual Thread Ingestion</h3>
+            <div class="two-column">
+                <div>
+                    <h4>Configuration</h4>
+                    <pre><code class="language-java">@ApplicationScoped
+@ManagedExecutorDefinition(
+    name = "java:module/concurrent/"
+         + "VirtualThreadExecutor",
+    virtual = true,
+    qualifiers = VirtualThreadExecutor.class
+)
+public class ConcurrencyConfig {}</code></pre>
+                </div>
+                <div>
+                    <h4>Ingestion</h4>
+                    <pre><code class="language-java">@Inject @VirtualThreadExecutor
+ManagedExecutorService executor;
+
+private void generateEmbeddings(
+        List&lt;DocumentChunk&gt; chunks) {
+    List&lt;Future&lt;Void&gt;&gt; futures =
+      chunks.stream()
+        .map(c -&gt; executor.submit(() -&gt; {
+          Response&lt;Embedding&gt; r =
+            embeddingModel.embed(c.getContent());
+          c.setEmbeddingVector(
+            r.content().vector());
+          return null;
+        }))
+        .toList();
+
+    for (Future&lt;Void&gt; f : futures)
+        f.get();
+}</code></pre>
+                </div>
+            </div>
+            <div class="layers" style="margin-top: 10px;">
+                <p><span class="hl">Container-managed virtual threads.</span> No raw JDK executors. Context propagation handled by the platform.</p>
+            </div>
+            <aside class="notes">
+                <p>Step six. The DataLoader generates embeddings at startup. Each chunk makes an HTTP call to Ollama's embedding endpoint. Instead of raw JDK Executors, we use Jakarta Concurrency 3.1's @ManagedExecutorDefinition with virtual = true.</p>
+                <p>The configuration is one annotation on one class. Payara creates a ManagedExecutorService backed by virtual threads, registers it in JNDI, and makes it available for CDI injection via the VirtualThreadExecutor qualifier. The DataLoader injects it and calls submit for each chunk.</p>
+                <p>Why this over Executors.newVirtualThreadPerTaskExecutor()? Context propagation. The managed executor automatically propagates Jakarta EE context to virtual threads: transactions, security, classloading. The raw JDK executor drops all of that. For this use case it wouldn't matter since we're not inside a transaction on the worker threads, but it's the idiomatic Jakarta EE pattern and it matters for production code.</p>
+                <p>42 chunks means 42 virtual threads submitted to the managed executor, all running concurrently. When a virtual thread blocks on the HTTP response, the JVM unmounts it from the carrier thread and schedules another. Total time: about 2 seconds.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: Step 7 - REST Endpoints -->
+        <!-- ============================================================ -->
+        <section>
+            <h3>Step 7: REST Endpoints</h3>
+            <div class="two-column">
+                <div>
+                    <h4>ChatResource</h4>
+                    <pre><code class="language-java">@Path("/chat")
+public class ChatResource {
+
+    @Inject AiService aiService;
+
+    @POST
+    @Consumes(APPLICATION_FORM_URLENCODED)
+    @Produces(TEXT_HTML)
+    public String ask(
+            @FormParam("question") String q) {
+        String answer = aiService.ask(q);
+        return renderAnswer(q, answer);
+    }
+}</code></pre>
+                </div>
+                <div>
+                    <h4>ModelResource</h4>
+                    <pre><code class="language-java">@Path("/models")
+public class ModelResource {
+
+    @Inject ChatModelFactory factory;
+
+    @GET @Produces(APPLICATION_JSON)
+    public Map&lt;String, Object&gt; list() {
+        return Map.of("current",
+            factory.getCurrentModelName(),
+            "available",
+            factory.getAvailableModels());
+    }
+
+    @POST
+    public String switchModel(
+            @FormParam("model") String name) {
+        factory.switchModel(name);
+        return "&lt;strong&gt;" + name + "&lt;/strong&gt;";
+    }
+}</code></pre>
+                </div>
+            </div>
+            <aside class="notes">
+                <p>Step seven. Two JAX-RS resources. ChatResource handles the Q&A form post. HTMX sends the question as form data, the resource calls AiService, renders the markdown answer to HTML using CommonMark, and returns an HTML fragment that HTMX injects into the page.</p>
+                <p>ModelResource is the runtime switching API. GET returns the current model name and available models as JSON. POST accepts a model name, calls factory.switchModel, and returns an HTML fragment that updates the model indicator in the UI. No redeployment. No restart. The next chat request uses the new model.</p>
+                <p>Both endpoints are standard JAX-RS. No AI framework annotations. No special configuration. Just CDI injection and HTTP.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: The Summary -->
+        <!-- ============================================================ -->
+        <section>
+            <h2>The Complete Pipeline</h2>
+            <div class="box-accent" style="text-align: center;">
+                <p style="font-size: 1.3em; font-family: var(--font-display); font-weight: 900;">
+                    12 files. ~200 lines of application code.
+                </p>
+            </div>
+            <table style="margin-top: 20px;">
+                <tr>
+                    <th>File</th>
+                    <th>Purpose</th>
+                    <th>Lines</th>
+                </tr>
+                <tr>
+                    <td><code>DocumentChunk</code></td>
+                    <td>JPA entity with byte[] embedding</td>
+                    <td>~30</td>
+                </tr>
+                <tr>
+                    <td><code>ConferenceTalk</code></td>
+                    <td>JPA entity for talk data</td>
+                    <td>~20</td>
+                </tr>
+                <tr>
+                    <td><code>Chunks</code> + <code>Talks</code></td>
+                    <td>Jakarta Data repositories</td>
+                    <td>~20</td>
+                </tr>
+                <tr>
+                    <td><code>VectorSearch</code></td>
+                    <td>Java cosine similarity</td>
+                    <td>~25</td>
+                </tr>
+                <tr>
+                    <td><code>AiService</code></td>
+                    <td>Programmatic RAG pipeline</td>
+                    <td>~25</td>
+                </tr>
+                <tr>
+                    <td><code>ChatModelFactory</code></td>
+                    <td>Runtime model switching</td>
+                    <td>~30</td>
+                </tr>
+                <tr>
+                    <td><code>DataLoader</code></td>
+                    <td>Virtual thread ingestion</td>
+                    <td>~35</td>
+                </tr>
+                <tr>
+                    <td><code>ConcurrencyConfig</code> + <code>VirtualThreadExecutor</code></td>
+                    <td>Managed virtual thread executor</td>
+                    <td>~15</td>
+                </tr>
+                <tr>
+                    <td><code>ChatResource</code> + <code>ModelResource</code></td>
+                    <td>REST endpoints</td>
+                    <td>~30</td>
+                </tr>
+            </table>
+            <aside class="notes">
+                <p>12 files. About 200 lines of actual application code. Two JPA entities, two repository interfaces, a vector search class, an AI service, a model factory, a data loader with managed virtual threads, a concurrency configuration, and two REST resources.</p>
+                <p>Every file is standard Jakarta EE. Every dependency is in the pom.xml. Every bean is managed by CDI. Compare this to the Python equivalent: LangChain for orchestration, FastAPI for HTTP, a separate vector database, a separate deployment pipeline. Same functionality, more moving parts, more languages to maintain, more teams to coordinate.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- PART 4: VIRTUAL THREADS -->
+        <!-- ============================================================ -->
+        <section>
+            <div class="section-number">04</div>
+            <h2>Virtual Threads</h2>
+            <p class="muted">Why they matter for AI workloads</p>
+            <aside class="notes">
+                <p>Let me spend a minute on virtual threads because they're the enabling technology for this approach. Without virtual threads, parallel embedding generation requires thread pool configuration. With Jakarta Concurrency 3.1, it's one annotation.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: Virtual Threads Comparison -->
+        <!-- ============================================================ -->
+        <section>
+            <h2>Platform vs Virtual Threads</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Platform Threads</th>
+                        <th>Virtual Threads</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Memory</strong></td>
+                        <td>~1MB stack per thread</td>
+                        <td class="success">~1KB per thread</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Creation</strong></td>
+                        <td>OS syscall, expensive</td>
+                        <td class="success">JVM-managed, cheap</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Blocking I/O</strong></td>
+                        <td>Pins carrier thread</td>
+                        <td class="success">Auto-unmounts, frees carrier</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Pool sizing</strong></td>
+                        <td>Must tune for workload</td>
+                        <td class="success">@ManagedExecutorDefinition(virtual=true)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>50 concurrent HTTP calls</strong></td>
+                        <td>50MB heap, FixedThreadPool(50)</td>
+                        <td class="success">50KB heap, no config</td>
+                    </tr>
+                </tbody>
+            </table>
+            <aside class="notes">
+                <p>The numbers tell the story. A platform thread reserves about 1MB of stack space. A virtual thread uses about 1KB. That's a 1000x difference. For 50 concurrent HTTP calls to Ollama, platform threads consume 50MB. Virtual threads consume 50KB.</p>
+                <p>The real win isn't memory. It's the elimination of pool sizing. Every Java developer has stared at a thread pool configuration wondering: should it be 10? 50? 200? The answer depends on the workload, and the workload changes. Jakarta Concurrency 3.1 makes the question irrelevant. @ManagedExecutorDefinition with virtual = true gives you a container-managed executor backed by virtual threads. Submit as many tasks as you need. The JVM multiplexes them onto a small pool of carrier threads.</p>
+                <p>When a virtual thread makes a blocking HTTP call, the JVM unmounts it from the carrier thread. The carrier thread runs another virtual thread. When the HTTP response arrives, the virtual thread remounts and continues. This is automatic. No reactive programming. No CompletableFuture chains. Just blocking code that scales.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: Virtual Thread Caveats -->
+        <!-- ============================================================ -->
+        <section>
+            <h2>Virtual Thread Caveats</h2>
+            <div class="two-column">
+                <div class="box-danger">
+                    <h3 style="color: var(--danger);">Avoid</h3>
+                    <ul>
+                        <li><code>synchronized</code> blocks &mdash; pins carrier thread</li>
+                        <li>ThreadLocal abuse &mdash; each vthread gets its own</li>
+                        <li>CPU-bound work &mdash; use platform threads instead</li>
+                    </ul>
+                </div>
+                <div class="box-success">
+                    <h3 style="color: var(--success);">Prefer</h3>
+                    <ul>
+                        <li><code>ReentrantLock</code> instead of <code>synchronized</code></li>
+                        <li>I/O-bound work &mdash; HTTP calls, DB queries</li>
+                        <li>Short-lived tasks &mdash; create, block, complete</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="layers" style="margin-top: 15px;">
+                <p>Virtual threads excel at <span class="hl">many concurrent I/O-bound operations</span>. AI embedding generation is the textbook use case: lots of HTTP calls, each blocking for a response.</p>
+            </div>
+            <aside class="notes">
+                <p>A few caveats worth knowing. Synchronized blocks pin the virtual thread to its carrier, defeating the purpose. Use java.util.concurrent.locks.ReentrantLock instead. In our code, we don't use any locks at all, so this isn't an issue.</p>
+                <p>ThreadLocal is per-virtual-thread. If you create a million virtual threads with ThreadLocal state, you get a million copies. Be careful. Our code doesn't use ThreadLocal.</p>
+                <p>Virtual threads are for I/O-bound work. CPU-bound work like matrix multiplication should stay on platform threads. Our embedding generation is I/O-bound: it makes an HTTP call to Ollama and waits for the response. The actual math happens in Ollama, not in the JVM. This is the ideal virtual thread workload.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- PART 5: RUNTIME MODEL SWITCHING -->
+        <!-- ============================================================ -->
+        <section>
+            <div class="section-number">05</div>
+            <h2>Runtime Model Switching</h2>
+            <p class="muted">One HTTP POST. No redeployment.</p>
+            <aside class="notes">
+                <p>This is the feature that justifies the programmatic approach. With the declarative @RegisterAIService, the AI service is created once at deployment time. To change the model, you redeploy. With ChatModelFactory, you send one HTTP POST and the next request uses the new model.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: Declarative vs Programmatic -->
+        <!-- ============================================================ -->
+        <section>
+            <h2>Declarative vs Programmatic</h2>
+            <div class="two-column">
+                <div class="box-danger">
+                    <h3 style="color: var(--danger);">Declarative (Talk 1)</h3>
+                    <pre><code class="language-java">@SystemMessage("You are an expert...")
+public interface Assistant {
+    String ask(@UserMessage String q);
+}
+
+// Wiring:
+assistant = AiServices.builder(
+    Assistant.class)
+  .chatModel(chatModel)
+  .contentRetriever(retriever)
+  .build();</code></pre>
+                    <ul style="margin-top: 10px; font-size: 0.8em;">
+                        <li>~5 lines of config</li>
+                        <li class="danger">Cannot switch model at runtime</li>
+                    </ul>
+                </div>
+                <div class="box-success">
+                    <h3 style="color: var(--success);">Programmatic (Talk 2)</h3>
+                    <pre><code class="language-java">// AiService asks the factory:
+ChatModel model = modelFactory.getChatModel();
+return model.chat(request).aiMessage().text();
+
+// Switch at runtime:
+modelFactory.switchModel("mistral");
+// Next request uses mistral</code></pre>
+                    <ul style="margin-top: 10px; font-size: 0.8em;">
+                        <li>~25 lines of pipeline code</li>
+                        <li class="success">Runtime switching via volatile field</li>
+                    </ul>
+                </div>
+            </div>
+            <aside class="notes">
+                <p>Side by side. On the left, the declarative approach from Talk 1. An interface with annotations, wired by AiServices.builder(). About 5 lines of configuration. Very clean. But the AI service is immutable after construction. You can't change the model without rebuilding.</p>
+                <p>On the right, the programmatic approach. The AiService asks the ChatModelFactory for the current model on every request. The factory holds the model in a volatile field. When switchModel is called, the factory creates a new OllamaChatModel with the requested model name and atomically replaces the reference. The next request picks up the new model.</p>
+                <p>This is a deliberate tradeoff. 20 more lines of code in exchange for runtime flexibility. For a production system where you might want to A/B test models or fall back from a large model to a small one under load, this matters.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: Live Demo Slide -->
+        <!-- ============================================================ -->
+        <section>
+            <h2>Live Demo</h2>
+            <div class="three-column">
+                <div class="box">
+                    <h4>1. Ask a Question</h4>
+                    <p class="muted" style="font-size: 0.85em;">"What talks are about virtual threads?"</p>
+                    <p class="muted" style="font-size: 0.85em;">AI retrieves relevant chunks, generates answer</p>
+                </div>
+                <div class="box">
+                    <h4>2. Switch Model</h4>
+                    <p class="muted" style="font-size: 0.85em;">Click "mistral" in the model bar</p>
+                    <p class="muted" style="font-size: 0.85em;">Same question, different style</p>
+                </div>
+                <div class="box">
+                    <h4>3. Ask Again</h4>
+                    <p class="muted" style="font-size: 0.85em;">Same WAR. Same deployment.</p>
+                    <p class="muted" style="font-size: 0.85em;">Different model, different answer.</p>
+                </div>
+            </div>
+            <div class="layers" style="margin-top: 20px;">
+                <p><span class="hl">No redeployment. No restart. No config file change.</span> One HTTP POST swaps the model in memory.</p>
+            </div>
+            <aside class="notes">
+                <p>Live demo time. First, I'll ask a question about virtual threads. The AI retrieves relevant chunks from our vector store and generates an answer. Then I'll click the "mistral" button in the model selector. This sends a POST to /api/models. The ChatModelFactory creates a new OllamaChatModel with mistral as the model name and replaces the volatile reference. Then I'll ask the same question again. Same WAR, same deployment, but now mistral generates the answer instead of gemma3. Different tone, different style, potentially different accuracy. That's the value of runtime switching.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- PART 6: TAKEAWAYS -->
+        <!-- ============================================================ -->
+        <section>
+            <div class="section-number">06</div>
+            <h2>Takeaways</h2>
+            <p class="muted">What you leave with</p>
+            <aside class="notes">
+                <p>Let me close with the concrete value propositions and the three numbers I want you to remember.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: Why This Matters -->
+        <!-- ============================================================ -->
+        <section>
+            <h2>Why This Matters</h2>
+            <div class="two-column">
+                <div class="box-success">
+                    <h3 style="color: var(--success);">For Your Team</h3>
+                    <ul>
+                        <li>No Python context-switching</li>
+                        <li>Jakarta Data: fewer lines than raw JPA</li>
+                        <li>Virtual threads: no pool sizing</li>
+                        <li>Every file is standard Jakarta EE</li>
+                    </ul>
+                </div>
+                <div class="box-success">
+                    <h3 style="color: var(--success);">For Operations</h3>
+                    <ul>
+                        <li>Runtime model switching</li>
+                        <li>Standard WAR deployment</li>
+                        <li>Docker Compose to production</li>
+                        <li>Same monitoring as everything else</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="box-accent" style="margin-top: 20px; text-align: center;">
+                <p><strong>Your ops team won't adapt to new patterns. Your developers won't switch to Python. Your architects will approve this.</strong></p>
+            </div>
+            <aside class="notes">
+                <p>Two audiences. For your development team: no Python. Your Java developers can build, debug, and maintain the entire AI pipeline without learning a new language. Jakarta Data reduces boilerplate compared to raw JPA. Virtual threads eliminate pool sizing. Every file uses standard Jakarta EE annotations and patterns.</p>
+                <p>For operations: runtime model switching means you can A/B test models or fall back without redeploying. It deploys as a standard WAR on any Jakarta EE 11 runtime. Docker Compose to production. Same health checks, same log aggregation, same metrics as every other Jakarta EE app in your fleet.</p>
+                <p>The bottom line from the talk synopsis: your ops team won't need to adapt to new deployment patterns, your developers won't be forced into Python context-switching, and your enterprise architects will approve this architecture.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: Key Takeaways -->
+        <!-- ============================================================ -->
+        <section>
+            <h2>Key Takeaways</h2>
+            <div style="margin-top: 25px;">
+                <div class="comparison-row">
+                    <div class="comparison-item">
+                        <div class="metric-large">0</div>
+                        <div class="metric-label">External vector databases<br>or Python dependencies</div>
+                    </div>
+                    <div class="comparison-item">
+                        <div class="metric-large">1</div>
+                        <div class="metric-label">HTTP POST to switch<br>AI models at runtime</div>
+                    </div>
+                    <div class="comparison-item">
+                        <div class="metric-large">~2s</div>
+                        <div class="metric-label">Embedding 42 chunks<br>via virtual threads</div>
+                    </div>
+                </div>
+            </div>
+            <div class="layers" style="margin-top: 25px;">
+                <p><strong>Jakarta Data for persistence.</strong> <strong>Virtual threads for concurrency.</strong> <strong>Java for similarity.</strong> Standard specs, new capabilities. The old dog already knows the tricks.</p>
+            </div>
+            <aside class="notes">
+                <p>Three numbers. Zero external vector databases or Python runtimes. Your embeddings live in PostgreSQL as byte arrays, and your similarity search is 15 lines of Java. One HTTP POST to switch AI models at runtime. The volatile field in ChatModelFactory makes this possible, and you can't do it with the declarative approach. And about 2 seconds to generate embeddings for 42 document chunks using virtual threads. No thread pool configuration. No tuning. Just create and go.</p>
+                <p>The closing line is a callback to the talk synopsis: sometimes the old dog doesn't need new tricks. It already knows them all. Jakarta EE has been the boring, reliable choice for 20 years. With virtual threads, Jakarta Data, and programmatic AI integration, it's also the smart choice for AI workloads.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: Resources -->
+        <!-- ============================================================ -->
+        <section>
+            <h2>Resources</h2>
+            <div class="two-column">
+                <div class="box">
+                    <h4>Source Code</h4>
+                    <ul style="font-size: 0.85em;">
+                        <li><strong>GitHub:</strong> github.com/pedanticdev/eclipse-ocx-2026</li>
+                        <li><strong>Branch:</strong> talk/jakarta-data-ai</li>
+                        <li><strong>Run:</strong> <code>./run.sh deploy</code></li>
+                    </ul>
+                </div>
+                <div class="box">
+                    <h4>Documentation</h4>
+                    <ul style="font-size: 0.85em;">
+                        <li><strong>Jakarta Data:</strong> jakarta.ee/specifications/data</li>
+                        <li><strong>LangChain4j:</strong> docs.langchain4j.dev</li>
+                        <li><strong>Ollama:</strong> ollama.com</li>
+                        <li><strong>Virtual Threads:</strong> openjdk.org/jeps/444</li>
+                        <li><strong>Payara Micro:</strong> payara.fish</li>
+                    </ul>
+                </div>
+            </div>
+            <aside class="notes">
+                <p>Everything on GitHub. Branch talk/jakarta-data-ai. Clone, run ./run.sh deploy, and you have a working RAG microservice with runtime model switching. Same WAR runs on any Jakarta EE 11 runtime.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: Thank You -->
+        <!-- ============================================================ -->
+        <section>
+            <h1>Thank You</h1>
+            <h3>Questions?</h3>
+            <div style="margin-top: 50px; font-size: 0.75em;">
+                <div style="text-align: center;">
+                    <span class="speaker-badge speaker-luqman">Luqman Saeed</span>
+                    <p class="muted" style="margin-top: 6px;">@luqman_saeed</p>
+                </div>
+            </div>
+            <p class="muted" style="margin-top: 30px; font-size: 0.65em;">
+                <strong>GitHub:</strong> github.com/pedanticdev/eclipse-ocx-2026
+            </p>
+            <aside class="notes">
+                <p>Thank you. The key message: you don't need to change your architecture to add AI. Jakarta Data repositories handle persistence. Virtual threads handle concurrency. Java handles similarity. MicroProfile Config handles flexibility. All standard specs. All deployable as one WAR.</p>
+                <p>The old dog doesn't need new tricks. It already knows them all.</p>
+            </aside>
+        </section>
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/plugin/notes/notes.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/plugin/highlight/highlight.js"></script>
+<script>
+    Reveal.initialize({
+        hash: true,
+        slideNumber: true,
+        loop: false,
+        transition: 'slide',
+        backgroundTransition: 'fade',
+        plugins: [RevealHighlight, RevealNotes],
+        width: 1280,
+        height: 720,
+        margin: 0.1,
+        minScale: 0.2,
+        maxScale: 2.0,
+        showNotes: false
+    });
+</script>
+</body>
+</html>
