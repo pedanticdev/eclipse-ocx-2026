@@ -1,6 +1,6 @@
-# Eclipse OCX 2026 - Jakarta EE AI Assistant
+# Eclipse OCX 2026 - The Intelligent Monolith
 
-A RAG-based AI assistant built entirely within a Jakarta EE 11 WAR. No Python. No API keys. No microservices. Local LLM inference via Ollama, vector storage via PgVector, all wired together with CDI.
+Four progressive AI modes in a single Jakarta EE 11 WAR. No Python. No API keys. No microservices. From declarative RAG to in-process LLM inference, all wired together with CDI.
 
 Talk: **The Intelligent Monolith: Supercharging Jakarta EE with Local AI** - Eclipse OCX 2026, Brussels.
 
@@ -26,6 +26,7 @@ That's it. The Dockerfile builds the WAR inside the container. No local JDK or M
 ./run.sh start      Start existing services
 ./run.sh stop       Stop all services
 ./run.sh restart    Stop and redeploy
+./run.sh jlama      Deploy with in-process Jlama (no Ollama needed)
 ./run.sh truncate   Clear embeddings and re-ingest
 ./run.sh benchmark  Run benchmark (cpu or gpu)
 ./run.sh logs       Tail application logs
@@ -37,23 +38,40 @@ That's it. The Dockerfile builds the WAR inside the container. No local JDK or M
 
 ```
 Browser (HTML + HTMX)
-  → Payara Micro (JAX-RS + CDI)
-    → LangChain4j (RAG pipeline)
-      → Ollama (local LLM inference)
-    → PostgreSQL (pgvector extension)
+  → Payara Micro 7 (JAX-RS + CDI)
+    → Mode 1: LangChain4j AiServices (declarative RAG)
+    → Mode 2: LangGraph4j (stateful agentic workflow)
+    → Mode 3: Koog (agent composition with specialist tools)
+    → Mode 4: Jlama (in-process LLM inference, no external model server)
+      ↕ PostgreSQL + pgvector (embeddings + relational data)
+      ↕ Ollama (local LLM inference for modes 1-3)
 ```
 
-Five Jakarta EE specifications drive the implementation:
+Each mode builds on the previous, demonstrating progressive AI adoption within a monolithic Jakarta EE application.
+
+## The Four Modes
+
+| Mode | Framework | What It Does |
+|---|---|---|
+| Declarative RAG | LangChain4j AiServices | Question → embedding search → context-augmented LLM response |
+| Agentic Workflow | LangGraph4j | LLM classifies query → routes to RAG or direct answer → responds |
+| Agent Composition | Koog | Planner agent with 3 specialist tools (spec search, version check, code generation) |
+| In-Process Inference | Jlama | LLM inference inside the JVM via Panama Vector API. No Ollama needed. |
+
+## Jakarta EE & MicroProfile Specifications
 
 | Specification | Role |
 |---|---|
-| CDI 4.1 | Bean producers for AI models, event-driven ingestion |
+| CDI 4.1 | Bean producers, interceptors, event-driven ingestion |
 | JPA 3.2 | Document entities alongside vector embeddings |
 | JAX-RS | Chat and benchmark endpoints, server-rendered HTML |
-| MicroProfile Config | Externalize `OLLAMA_BASE_URL` |
-| Jakarta Persistence | Schema generation, `@DataSourceDefinition` |
+| Jakarta Interceptors | Audit logging via `@Audited` binding |
+| MicroProfile Config | Externalize model names, URLs, thresholds |
+| MicroProfile Fault Tolerance | `@CircuitBreaker`, `@Retry`, `@Fallback` on AI calls |
 
 ## What's Inside
+
+### AI Pipeline
 
 **`EmbeddingProducers`** - Three CDI producer methods that create the `EmbeddingModel`, `EmbeddingStore`, and `ContentRetriever` as injectable beans.
 
@@ -63,7 +81,31 @@ Five Jakarta EE specifications drive the implementation:
 
 **`ConferenceAssistant`** - A LangChain4j interface with `@SystemMessage` and `@UserMessage` annotations. No implementation class; LangChain4j generates it at runtime.
 
-**`ConferenceChatService`** - Wires the AI service via `AiServices.builder()`. Detects greetings to bypass RAG for non-query inputs.
+### Agentic Modes
+
+**`ConferenceAgent`** - LangGraph4j state graph: `START → classify → (rag | direct) → respond → END`. The LLM classifies each query to decide whether RAG retrieval is needed.
+
+**`ConferenceOrchestrator`** - Koog `AIAgent` with three specialist tools registered via `ToolRegistryBuilder`. The planner agent decides which tools to call based on the question.
+
+**`JlamaChatModelProducer`** - CDI bean that loads a Jlama model for in-JVM inference via the Panama Vector API. Initializes gracefully: if the model is unavailable, the other three modes continue working.
+
+### Specialist Tools (Koog)
+
+| Tool | Access Scope |
+|---|---|
+| `SpecSearchTool` | Reads PgVector via `ContentRetriever`. Bounded by `maxResults(5)` and `minScore(0.5)`. |
+| `VersionCheckTool` | Static in-memory map of Jakarta EE version history. No external access. |
+| `CodeExampleTool` | Generates code examples via the LLM. Text output only. |
+
+### Security
+
+**`ChatResource`** - Input validation before any LLM prompt: length cap (500 chars), mode allowlist, and regex-based injection pattern detection.
+
+**`AuditInterceptor`** - CDI interceptor (`@Audited` binding + `@Priority`) that produces structured log entries for every agent interaction: method, parameters, result length, latency, status.
+
+**`ConferenceChatService`** - MicroProfile Fault Tolerance annotations: `@Retry` (2 retries, 1s backoff), `@CircuitBreaker` (trips after 3/5 failures, 30s half-open), `@Fallback` (returns service-unavailable message).
+
+### HTTP Layer
 
 **`ChatResource`** - JAX-RS POST endpoint. Receives HTMX form posts, returns HTML fragments. Server-side markdown rendering via CommonMark.
 
@@ -71,10 +113,11 @@ Five Jakarta EE specifications drive the implementation:
 
 ## AI Models
 
-| Model | Purpose | Size |
-|---|---|---|
-| gemma4:e2b | Chat (answer generation) | ~1.6 GB |
-| nomic-embed-text | Embeddings (vector search) | ~274 MB |
+| Model | Purpose | Size | Mode |
+|---|---|---|---|
+| gemma4:e2b | Chat (answer generation) | ~1.6 GB | 1-3 via Ollama |
+| nomic-embed-text | Embeddings (vector search) | ~274 MB | 1-3 via Ollama |
+| gemma-2b-it-jlama-Q4 | In-process inference | ~1.4 GB | 4 via Jlama |
 
 ## Switching to GPU
 
@@ -91,25 +134,38 @@ Ollama auto-detects GPU hardware (CUDA for NVIDIA, ROCm for AMD). Same WAR, zero
 
 ```
 src/main/java/com/azul/eclipseocx2026/
-  ApplicationConfig.java       JAX-RS application path
+  ApplicationConfig.java         JAX-RS application path
   config/
-    DataSourceConfig.java      @DataSourceDefinition for PostgreSQL
+    DataSourceConfig.java        @DataSourceDefinition for PostgreSQL
   ai/
-    EmbeddingProducers.java    CDI producers for model, store, retriever
-    ConferenceAssistant.java   AI service interface
-    ConferenceChatService.java RAG wiring + greeting detection
+    EmbeddingProducers.java      CDI producers for model, store, retriever
+    ConferenceAssistant.java     AI service interface (LangChain4j)
+    ConferenceChatService.java   Mode routing + Fault Tolerance + @Audited
+    ConferenceAgent.java         LangGraph4j agentic workflow
+    ConferenceOrchestrator.java  Koog agent composition
+    JlamaChatModelProducer.java  In-process inference (graceful opt-in)
+    tools/
+      SpecSearchTool.java        RAG search via ContentRetriever
+      VersionCheckTool.java      Jakarta EE version lookup
+      CodeExampleTool.java       LLM-powered code generation
+  security/
+    Audited.java                 CDI interceptor binding
+    AuditInterceptor.java        Structured audit logging
   data/
-    DocumentEntity.java        JPA entity
-    DataLoader.java            Persist + embed on startup
+    DocumentEntity.java          JPA entity
+    DataLoader.java              Persist + embed on startup
   resource/
-    ChatResource.java          POST /api/chat
-    BenchmarkResource.java     GET /api/benchmark, GET /api/benchmark/run
+    ChatResource.java            POST /api/chat (input validation)
+    BenchmarkResource.java       GET /api/benchmark, GET /api/benchmark/run
 
 src/main/webapp/
-  index.html                   Chat UI (HTMX)
-  presentation.html            Reveal.js slide deck
-  css/style.css                Dark theme
-  js/htmx.min.js               HTMX library
+  index.html                     Chat UI (4 tabs, HTMX)
+  presentation.html              Reveal.js slide deck (37 slides)
+  css/style.css                  Dark theme
+  js/htmx.min.js                 HTMX library
+
+src/main/resources/
+  META-INF/microprofile-config.properties
 ```
 
 ## License
