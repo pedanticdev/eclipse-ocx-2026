@@ -1,5 +1,6 @@
 package com.azul.eclipseocx2026.ai;
 
+import com.azul.eclipseocx2026.security.Audited;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.response.ChatResponse;
@@ -8,7 +9,11 @@ import dev.langchain4j.service.AiServices;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import org.eclipse.microprofile.faulttolerance.CircuitBreaker;
+import org.eclipse.microprofile.faulttolerance.Fallback;
+import org.eclipse.microprofile.faulttolerance.Retry;
 
+import java.time.temporal.ChronoUnit;
 import java.util.Set;
 
 @ApplicationScoped
@@ -44,6 +49,10 @@ public class ConferenceChatService {
                 .build();
     }
 
+    @Audited
+    @Retry(maxRetries = 2, delay = 1, delayUnit = ChronoUnit.SECONDS)
+    @CircuitBreaker(requestVolumeThreshold = 5, failureRatio = 0.6, delay = 30, delayUnit = ChronoUnit.SECONDS)
+    @Fallback(fallbackMethod = "fallback")
     public String ask(String question, String mode) {
         return switch (mode) {
             case "agent" -> agent.ask(question);
@@ -51,6 +60,10 @@ public class ConferenceChatService {
             case "in-process" -> askInProcess(question);
             default -> askDeclarative(question);
         };
+    }
+
+    private String fallback(String question, String mode) {
+        return "The AI service is temporarily unavailable. Please try again in a moment.";
     }
 
     private String askDeclarative(String question) {
