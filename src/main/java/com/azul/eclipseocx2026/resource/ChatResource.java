@@ -80,6 +80,7 @@ public class ChatResource {
     }
 
     private String escapeHtml(String text) {
+        if (text == null) return "";
         return text.replace("&", "&amp;")
                    .replace("<", "&lt;")
                    .replace(">", "&gt;")

@@ -48,28 +48,193 @@
             </div>
 
             <aside class="sidebar">
-                <h2>Sample Questions</h2>
-                <div class="sample-questions" hx-indicator="#loading">
-                    <button hx-post="/api/chat"
-                            hx-vals='{"question": "What is CDI and how does it work?"}'
-                            hx-target="#chat-messages" hx-swap="afterbegin">
-                        What is CDI?
-                    </button>
-                    <button hx-post="/api/chat"
-                            hx-vals='{"question": "Tell me about the Jakarta Data specification"}'
-                            hx-target="#chat-messages" hx-swap="afterbegin">
-                        Tell me about Jakarta Data
-                    </button>
-                    <button hx-post="/api/chat"
-                            hx-vals='{"question": "How does JPA handle entity relationships?"}'
-                            hx-target="#chat-messages" hx-swap="afterbegin">
-                        How does JPA handle relationships?
-                    </button>
-                    <button hx-post="/api/chat"
-                            hx-vals='{"question": "What is new in Jakarta Concurrency 3.1?"}'
-                            hx-target="#chat-messages" hx-swap="afterbegin">
-                        What's new in Concurrency 3.1?
-                    </button>
+                <h2>Browse Specs</h2>
+                <div class="spec-tags">
+                    <button class="spec-tag active" data-spec="cdi"
+                            onclick="showSpecQuestions(this)">CDI 4.1</button>
+                    <button class="spec-tag" data-spec="jpa"
+                            onclick="showSpecQuestions(this)">JPA 3.2</button>
+                    <button class="spec-tag" data-spec="concurrency"
+                            onclick="showSpecQuestions(this)">Concurrency 3.1</button>
+                    <button class="spec-tag" data-spec="data"
+                            onclick="showSpecQuestions(this)">Jakarta Data 1.0</button>
+                    <button class="spec-tag" data-spec="jaxrs"
+                            onclick="showSpecQuestions(this)">JAX-RS 4.0</button>
+                </div>
+
+                <h2 class="section-divider">Questions</h2>
+                <div class="sample-questions" hx-indicator="#loading" id="spec-questions">
+
+                    <div class="spec-panel active" data-spec="cdi">
+                        <button hx-post="/api/chat"
+                                hx-vals='{"question": "What are the built-in CDI bean scopes and when should I use each one?"}'
+                                hx-target="#chat-messages" hx-swap="afterbegin">
+                            What are the built-in CDI bean scopes?
+                        </button>
+                        <button hx-post="/api/chat"
+                                hx-vals='{"question": "How does CDI producer methods work and when should I use them?"}'
+                                hx-target="#chat-messages" hx-swap="afterbegin">
+                            How do CDI producer methods work?
+                        </button>
+                        <button hx-post="/api/chat"
+                                hx-vals='{"question": "Explain CDI events and observer methods"}'
+                                hx-target="#chat-messages" hx-swap="afterbegin">
+                            Explain CDI events and observer methods
+                        </button>
+                        <button hx-post="/api/chat"
+                                hx-vals='{"question": "What is the difference between @Interceptor and @Decorator in CDI?"}'
+                                hx-target="#chat-messages" hx-swap="afterbegin">
+                            Interceptor vs Decorator in CDI?
+                        </button>
+                        <button hx-post="/api/chat"
+                                hx-vals='{"question": "How do CDI stereotypes work and what problem do they solve?"}'
+                                hx-target="#chat-messages" hx-swap="afterbegin">
+                            How do CDI stereotypes work?
+                        </button>
+                        <button hx-post="/api/chat"
+                                hx-vals='{"question": "What is a CDI bean archive and how is it discovered?"}'
+                                hx-target="#chat-messages" hx-swap="afterbegin">
+                            What is a CDI bean archive?
+                        </button>
+                    </div>
+
+                    <div class="spec-panel" data-spec="jpa">
+                        <button hx-post="/api/chat"
+                                hx-vals='{"question": "How does JPA handle entity lifecycle callbacks and listeners?"}'
+                                hx-target="#chat-messages" hx-swap="afterbegin">
+                            JPA entity lifecycle callbacks
+                        </button>
+                        <button hx-post="/api/chat"
+                                hx-vals='{"question": "Explain JPA entity relationships: @OneToMany, @ManyToOne, @ManyToMany"}'
+                                hx-target="#chat-messages" hx-swap="afterbegin">
+                            JPA entity relationships explained
+                        </button>
+                        <button hx-post="/api/chat"
+                                hx-vals='{"question": "What is the difference between FetchType LAZY and EAGER in JPA?"}'
+                                hx-target="#chat-messages" hx-swap="afterbegin">
+                            LAZY vs EAGER fetching
+                        </button>
+                        <button hx-post="/api/chat"
+                                hx-vals='{"question": "How does the JPQL query language work in JPA?"}'
+                                hx-target="#chat-messages" hx-swap="afterbegin">
+                            How does JPQL work?
+                        </button>
+                        <button hx-post="/api/chat"
+                                hx-vals='{"question": "What are JPA Criteria API queries and when should I use them?"}'
+                                hx-target="#chat-messages" hx-swap="afterbegin">
+                            When to use Criteria API?
+                        </button>
+                        <button hx-post="/api/chat"
+                                hx-vals='{"question": "How does JPA caching work? First-level vs second-level cache"}'
+                                hx-target="#chat-messages" hx-swap="afterbegin">
+                            JPA caching levels explained
+                        </button>
+                        <button hx-post="/api/chat"
+                                hx-vals='{"question": "What is JPA optimistic locking with @Version?"}'
+                                hx-target="#chat-messages" hx-swap="afterbegin">
+                            Optimistic locking with @Version
+                        </button>
+                    </div>
+
+                    <div class="spec-panel" data-spec="concurrency">
+                        <button hx-post="/api/chat"
+                                hx-vals='{"question": "What is new in Jakarta Concurrency 3.1?"}'
+                                hx-target="#chat-messages" hx-swap="afterbegin">
+                            What is new in Concurrency 3.1?
+                        </button>
+                        <button hx-post="/api/chat"
+                                hx-vals='{"question": "How does @Asynchronous work in Jakarta Concurrency?"}'
+                                hx-target="#chat-messages" hx-swap="afterbegin">
+                            How does @Asynchronous work?
+                        </button>
+                        <button hx-post="/api/chat"
+                                hx-vals='{"question": "Explain ManagedExecutorService vs Java SE ExecutorService"}'
+                                hx-target="#chat-messages" hx-swap="afterbegin">
+                            ManagedExecutorService vs SE ExecutorService
+                        </button>
+                        <button hx-post="/api/chat"
+                                hx-vals='{"question": "How do ContextualTimer and scheduled tasks work in Concurrency?"}'
+                                hx-target="#chat-messages" hx-swap="afterbegin">
+                            ContextualTimer and scheduled tasks
+                        </button>
+                        <button hx-post="/api/chat"
+                                hx-vals='{"question": "What context is propagated by default in Jakarta Concurrency?"}'
+                                hx-target="#chat-messages" hx-swap="afterbegin">
+                            Default context propagation
+                        </button>
+                    </div>
+
+                    <div class="spec-panel" data-spec="data">
+                        <button hx-post="/api/chat"
+                                hx-vals='{"question": "What is the Jakarta Data Repository pattern and how does it work?"}'
+                                hx-target="#chat-messages" hx-swap="afterbegin">
+                            Repository pattern in Jakarta Data
+                        </button>
+                        <button hx-post="/api/chat"
+                                hx-vals='{"question": "How do you define query methods in Jakarta Data repositories?"}'
+                                hx-target="#chat-messages" hx-swap="afterbegin">
+                            Query methods in repositories
+                        </button>
+                        <button hx-post="/api/chat"
+                                hx-vals='{"question": "Explain pagination support in Jakarta Data"}'
+                                hx-target="#chat-messages" hx-swap="afterbegin">
+                            Pagination in Jakarta Data
+                        </button>
+                        <button hx-post="/api/chat"
+                                hx-vals='{"question": "How does Jakarta Data integrate with JPA and NoSQL?"}'
+                                hx-target="#chat-messages" hx-swap="afterbegin">
+                            Integration with JPA and NoSQL
+                        </button>
+                        <button hx-post="/api/chat"
+                                hx-vals='{"question": "What is the StaticMetamodel in Jakarta Data and why use it?"}'
+                                hx-target="#chat-messages" hx-swap="afterbegin">
+                            StaticMetamodel in Jakarta Data
+                        </button>
+                        <button hx-post="/api/chat"
+                                hx-vals='{"question": "How do @Insert, @Update, @Delete annotations work in Jakarta Data?"}'
+                                hx-target="#chat-messages" hx-swap="afterbegin">
+                            Lifecycle annotations in Jakarta Data
+                        </button>
+                    </div>
+
+                    <div class="spec-panel" data-spec="jaxrs">
+                        <button hx-post="/api/chat"
+                                hx-vals='{"question": "What are the JAX-RS resource method annotations (@GET, @POST, @PUT, @DELETE)?"}'
+                                hx-target="#chat-messages" hx-swap="afterbegin">
+                            JAX-RS resource method annotations
+                        </button>
+                        <button hx-post="/api/chat"
+                                hx-vals='{"question": "How does JAX-RS content negotiation work with @Produces and @Consumes?"}'
+                                hx-target="#chat-messages" hx-swap="afterbegin">
+                            Content negotiation in JAX-RS
+                        </button>
+                        <button hx-post="/api/chat"
+                                hx-vals='{"question": "Explain JAX-RS filters and interceptors (ContainerRequestFilter, etc.)"}'
+                                hx-target="#chat-messages" hx-swap="afterbegin">
+                            JAX-RS filters and interceptors
+                        </button>
+                        <button hx-post="/api/chat"
+                                hx-vals='{"question": "How does JAX-RS exception handling work with ExceptionMapper?"}'
+                                hx-target="#chat-messages" hx-swap="afterbegin">
+                            Exception handling with ExceptionMapper
+                        </button>
+                        <button hx-post="/api/chat"
+                                hx-vals='{"question": "What is the JAX-RS Client API and how do I use it?"}'
+                                hx-target="#chat-messages" hx-swap="afterbegin">
+                            JAX-RS Client API usage
+                        </button>
+                        <button hx-post="/api/chat"
+                                hx-vals='{"question": "How do JAX-RS sub-resources and resource locators work?"}'
+                                hx-target="#chat-messages" hx-swap="afterbegin">
+                            Sub-resources and resource locators
+                        </button>
+                        <button hx-post="/api/chat"
+                                hx-vals='{"question": "What is SSE (Server-Sent Events) support in JAX-RS?"}'
+                                hx-target="#chat-messages" hx-swap="afterbegin">
+                            SSE support in JAX-RS
+                        </button>
+                    </div>
+
                 </div>
 
                 <h2 class="section-divider">Performance</h2>
@@ -94,13 +259,26 @@
             document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
             btn.classList.add('active');
             document.getElementById('mode-input').value = btn.dataset.mode;
-            // Sync sample question buttons with active mode
-            document.querySelectorAll('.sample-questions button[hx-post]').forEach(b => {
+            syncQuestionModes(btn.dataset.mode);
+        }
+
+        function showSpecQuestions(btn) {
+            document.querySelectorAll('.spec-tag').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('.spec-panel').forEach(p => p.classList.remove('active'));
+            document.querySelector('.spec-panel[data-spec="' + btn.dataset.spec + '"]').classList.add('active');
+        }
+
+        function syncQuestionModes(mode) {
+            document.querySelectorAll('.spec-panel button[hx-post]').forEach(b => {
                 const vals = JSON.parse(b.getAttribute('hx-vals') || '{}');
-                vals.mode = btn.dataset.mode;
+                vals.mode = mode;
                 b.setAttribute('hx-vals', JSON.stringify(vals));
             });
         }
+
+        // Initialize question buttons with default mode
+        syncQuestionModes('declarative');
     </script>
 </body>
 </html>

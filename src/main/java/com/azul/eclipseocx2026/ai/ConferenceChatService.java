@@ -62,7 +62,7 @@ public class ConferenceChatService {
         };
     }
 
-    private String fallback(String question, String mode) {
+    String fallback(String question, String mode) {
         return "The AI service is temporarily unavailable. Please try again in a moment.";
     }
 

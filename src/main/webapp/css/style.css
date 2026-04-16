@@ -268,6 +268,51 @@ main {
     background: var(--accent-glow);
 }
 
+/* Spec Tag Cloud */
+.spec-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.spec-tag {
+    padding: 0.35rem 0.75rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 400;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.spec-tag:hover {
+    color: var(--text-secondary);
+    border-color: var(--accent-dim);
+}
+
+.spec-tag.active {
+    background: var(--accent-glow);
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 700;
+}
+
+/* Spec Question Panels */
+.spec-panel {
+    display: none;
+}
+
+.spec-panel.active {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    animation: fadeIn 0.2s ease-out;
+}
+
 /* Benchmark */
 .benchmark-table {
     margin-top: 0.75rem;
@@ -351,12 +396,16 @@ footer {
         position: static;
     }
 
-    .sample-questions {
+    .spec-tags {
+        justify-content: center;
+    }
+
+    .spec-panel.active {
         flex-direction: row;
         flex-wrap: wrap;
     }
 
-    .sample-questions button {
+    .spec-panel.active button {
         width: auto;
         flex: 1 1 auto;
     }

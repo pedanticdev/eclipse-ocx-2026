@@ -15,6 +15,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.jspecify.annotations.NonNull;
 
 import java.util.List;
 import java.util.logging.Logger;
@@ -70,16 +71,7 @@ public class ConferenceOrchestrator {
         );
 
         // Create specialist tools
-        SpecSearchTool specTool = new SpecSearchTool(contentRetriever);
-        VersionCheckTool versionTool = new VersionCheckTool();
-        CodeExampleTool codeTool = new CodeExampleTool(chatModel);
-
-        // Build tool registry from ToolSets via reflection
-        ToolRegistryBuilder registryBuilder = new ToolRegistryBuilder();
-        registryBuilder.tools(specTool);
-        registryBuilder.tools(versionTool);
-        registryBuilder.tools(codeTool);
-        ToolRegistry registry = registryBuilder.build();
+        ToolRegistry registry = getToolRegistry();
 
         // Build the planner agent
         this.plannerAgent = AIAgent.builder()
@@ -108,6 +100,19 @@ public class ConferenceOrchestrator {
                 .build();
 
         LOG.info("Koog planner agent initialized with 3 specialist tools");
+    }
+
+    private @NonNull ToolRegistry getToolRegistry() {
+        SpecSearchTool specTool = new SpecSearchTool(contentRetriever);
+        VersionCheckTool versionTool = new VersionCheckTool();
+        CodeExampleTool codeTool = new CodeExampleTool(chatModel);
+
+        // Build tool registry from ToolSets via reflection
+        ToolRegistryBuilder registryBuilder = new ToolRegistryBuilder();
+        registryBuilder.tools(specTool);
+        registryBuilder.tools(versionTool);
+        registryBuilder.tools(codeTool);
+        return registryBuilder.build();
     }
 
     public String ask(String question) {

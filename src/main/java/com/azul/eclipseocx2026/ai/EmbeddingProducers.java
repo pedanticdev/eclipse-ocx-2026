@@ -29,7 +29,7 @@ public class EmbeddingProducers {
     @Produces
     @ApplicationScoped
     public EmbeddingModel embeddingModel() {
-        return OllamaEmbeddingModel.builder().baseUrl(ollamaBaseUrl).modelName("nomic-embed-text").timeout(Duration.ofSeconds(60)).build();
+        return OllamaEmbeddingModel.builder().baseUrl(ollamaBaseUrl).modelName("nomic-embed-text").timeout(Duration.ofMinutes(5)).build();
     }
 
     @Produces

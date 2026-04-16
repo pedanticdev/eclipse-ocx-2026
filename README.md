@@ -56,7 +56,7 @@ Each mode builds on the previous, demonstrating progressive AI adoption within a
 | Declarative RAG | LangChain4j AiServices | Question → embedding search → context-augmented LLM response |
 | Agentic Workflow | LangGraph4j | LLM classifies query → routes to RAG or direct answer → responds |
 | Agent Composition | Koog | Planner agent with 3 specialist tools (spec search, version check, code generation) |
-| In-Process Inference | Jlama | LLM inference inside the JVM via Panama Vector API. No Ollama needed. |
+| In-Process Inference | Jlama | LLM inference inside the JVM. No Ollama needed. |
 
 ## Jakarta EE & MicroProfile Specifications
 
@@ -77,7 +77,11 @@ Each mode builds on the previous, demonstrating progressive AI adoption within a
 
 **`DocumentEntity`** - JPA entity persisted in PostgreSQL. The same database holds both relational data and vector embeddings.
 
-**`DataLoader`** - On startup, persists Jakarta EE spec documents as JPA entities, then splits and embeds them into PgVector. Duplicate guard prevents re-ingestion on restart.
+**`EmbeddingPreComputer`** - Build-time standalone tool (run via Maven profile). Parses Jakarta EE spec HTML files with Jsoup, splits into 1000-char chunks with 200-char overlap, embeds via Ollama `nomic-embed-text`, and writes JSON files with text + float[] vectors.
+
+**`PrecomputedEmbeddingLoader`** - Runtime reader using Jakarta JSON-P. Parses the pre-computed embedding JSON files into `TextSegment` + `Embedding` pairs for direct insertion into PgVector.
+
+**`DataLoader`** - On startup, loads Jakarta EE spec embeddings into PgVector. Two-tier strategy: first checks for pre-computed JSON files (generated at build time by `EmbeddingPreComputer`), then falls back to parsing the HTML specification documents and embedding them live via Ollama. Batches embeddings in groups of 50 to avoid timeouts. Duplicate guard prevents re-ingestion on restart.
 
 **`ConferenceAssistant`** - A LangChain4j interface with `@SystemMessage` and `@UserMessage` annotations. No implementation class; LangChain4j generates it at runtime.
 
@@ -87,7 +91,7 @@ Each mode builds on the previous, demonstrating progressive AI adoption within a
 
 **`ConferenceOrchestrator`** - Koog `AIAgent` with three specialist tools registered via `ToolRegistryBuilder`. The planner agent decides which tools to call based on the question.
 
-**`JlamaChatModelProducer`** - CDI bean that loads a Jlama model for in-JVM inference via the Panama Vector API. Initializes gracefully: if the model is unavailable, the other three modes continue working.
+**`JlamaChatModelProducer`** - CDI bean that loads a Jlama model for in-JVM inference. Initializes gracefully: if the model is unavailable, the other three modes continue working.
 
 ### Specialist Tools (Koog)
 
@@ -119,6 +123,32 @@ Each mode builds on the previous, demonstrating progressive AI adoption within a
 | nomic-embed-text | Embeddings (vector search) | ~274 MB | 1-3 via Ollama |
 | gemma-2b-it-jlama-Q4 | In-process inference | ~1.4 GB | 4 via Jlama |
 
+## Data Ingestion Pipeline
+
+The RAG pipeline ingests full Jakarta EE specification documents (not summaries). Five specs totaling ~11 MB of HTML content, split into ~3500 segments of 1000 characters with 200-character overlap.
+
+### Two-Tier Loading Strategy
+
+1. **Pre-computed (fast startup):** Run `mvn process-resources -Pprecompute-embeddings` to generate JSON embedding files at build time. The `DataLoader` loads these in milliseconds at startup.
+2. **Runtime fallback (no build step):** If pre-computed files are absent, `DataLoader` parses the HTML specs with Jsoup, splits them, and calls Ollama for embedding in batches of 50 segments. This takes ~13 minutes on first startup.
+
+### Downloading Spec Documents
+
+```bash
+./download-specs.sh
+```
+
+Downloads the 5 Jakarta EE specification HTML files from [jakarta.ee/specifications](https://jakarta.ee/specifications/) into `src/main/resources/data/jakarta-specs/`.
+
+### Pre-computing Embeddings
+
+```bash
+# Requires Ollama running locally with nomic-embed-text pulled
+mvn process-resources -Pprecompute-embeddings
+```
+
+Generates JSON files in `target/classes/data/embeddings/` containing pre-computed vectors for each spec. Package these into the WAR for instant startup.
+
 ## Switching to GPU
 
 Change one environment variable:
@@ -135,6 +165,8 @@ Ollama auto-detects GPU hardware (CUDA for NVIDIA, ROCm for AMD). Same WAR, zero
 ```
 src/main/java/com/azul/eclipseocx2026/
   ApplicationConfig.java         JAX-RS application path
+  build/
+    EmbeddingPreComputer.java    Build-time tool: HTML specs -> pre-computed embedding JSON
   config/
     DataSourceConfig.java        @DataSourceDefinition for PostgreSQL
   ai/
@@ -153,19 +185,30 @@ src/main/java/com/azul/eclipseocx2026/
     AuditInterceptor.java        Structured audit logging
   data/
     DocumentEntity.java          JPA entity
-    DataLoader.java              Persist + embed on startup
+    DataLoader.java              Precomputed-first loading + HTML fallback + batch embedding
+    PrecomputedEmbeddingLoader.java  Runtime reader for build-time embedding JSON
   resource/
     ChatResource.java            POST /api/chat (input validation)
     BenchmarkResource.java       GET /api/benchmark, GET /api/benchmark/run
 
 src/main/webapp/
   index.html                     Chat UI (4 tabs, HTMX)
-  presentation.html              Reveal.js slide deck (37 slides)
+  presentation.html              Reveal.js slide deck
   css/style.css                  Dark theme
   js/htmx.min.js                 HTMX library
 
 src/main/resources/
   META-INF/microprofile-config.properties
+  data/
+    jakarta-specs/               Full Jakarta EE specification HTML documents
+      cdi.html                   CDI 4.1 spec (~722 KB)
+      jpa.html                   JPA 3.2 spec (~2.5 MB)
+      concurrency.html           Concurrency 3.1 spec (~6.9 MB)
+      data.html                  Data 1.0 spec (~541 KB)
+      jaxrs.html                 JAX-RS 4.0 spec (~553 KB)
+    embeddings/                  (generated) Pre-computed embedding JSON files
+
+download-specs.sh                Downloads Jakarta EE HTML specs from jakarta.ee
 ```
 
 ## License
