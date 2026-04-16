@@ -1,6 +1,5 @@
 package com.azul.eclipseocx2026.ai;
 
-import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.response.ChatResponse;
@@ -26,6 +25,15 @@ public class ConferenceChatService {
     @Inject
     private ContentRetriever contentRetriever;
 
+    @Inject
+    private ConferenceAgent agent;
+
+    @Inject
+    private ConferenceOrchestrator orchestrator;
+
+    @Inject
+    private JlamaChatModelProducer jlamaProducer;
+
     private ConferenceAssistant assistant;
 
     @PostConstruct
@@ -36,7 +44,16 @@ public class ConferenceChatService {
                 .build();
     }
 
-    public String ask(String question) {
+    public String ask(String question, String mode) {
+        return switch (mode) {
+            case "agent" -> agent.ask(question);
+            case "orchestrated" -> orchestrator.ask(question);
+            case "in-process" -> askInProcess(question);
+            default -> askDeclarative(question);
+        };
+    }
+
+    private String askDeclarative(String question) {
         if (isGreeting(question)) {
             ChatResponse response = chatModel.chat(UserMessage.from(
                     "Respond briefly and warmly. You are a Jakarta EE expert assistant. "
@@ -50,5 +67,16 @@ public class ConferenceChatService {
     private boolean isGreeting(String input) {
         String normalized = input.trim().toLowerCase().replaceAll("[!.?]", "");
         return normalized.length() <= 30 && GREETINGS.contains(normalized);
+    }
+
+    private String askInProcess(String question) {
+        if (!jlamaProducer.isAvailable()) {
+            return "In-process inference is not available. Ensure the Jlama model is downloaded "
+                    + "and the JVM supports the Panama Vector API (`--add-modules=jdk.incubator.vector`).";
+        }
+        ChatResponse response = jlamaProducer.getChatModel().chat(UserMessage.from(
+                "You are a Jakarta EE expert assistant. Answer concisely.\n\n" + question
+        ));
+        return response.aiMessage().text();
     }
 }

@@ -19,8 +19,20 @@
 
         <main>
             <div class="chat-area">
+                <div class="mode-tabs">
+                    <button class="mode-tab active" data-mode="declarative"
+                            onclick="setMode(this)">Declarative RAG</button>
+                    <button class="mode-tab" data-mode="agent"
+                            onclick="setMode(this)">Agentic Workflow</button>
+                    <button class="mode-tab" data-mode="orchestrated"
+                            onclick="setMode(this)">Agent Composition</button>
+                    <button class="mode-tab" data-mode="in-process"
+                            onclick="setMode(this)">In-Process</button>
+                </div>
+
                 <form hx-post="/api/chat" hx-target="#chat-messages" hx-swap="afterbegin"
                       hx-indicator="#loading" class="chat-form">
+                    <input type="hidden" name="mode" id="mode-input" value="declarative">
                     <input type="text" name="question"
                            placeholder="Ask about Jakarta EE specifications and APIs..."
                            required autofocus>
@@ -73,8 +85,22 @@
         </main>
 
         <footer>
-            <p>Powered by Jakarta EE 11, CDI, LangChain4j, and Ollama</p>
+            <p>Powered by Jakarta EE 11, CDI, LangChain4j, LangGraph4j, Koog, Jlama, and Ollama</p>
         </footer>
     </div>
+
+    <script>
+        function setMode(btn) {
+            document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('mode-input').value = btn.dataset.mode;
+            // Sync sample question buttons with active mode
+            document.querySelectorAll('.sample-questions button[hx-post]').forEach(b => {
+                const vals = JSON.parse(b.getAttribute('hx-vals') || '{}');
+                vals.mode = btn.dataset.mode;
+                b.setAttribute('hx-vals', JSON.stringify(vals));
+            });
+        }
+    </script>
 </body>
 </html>

@@ -12,12 +12,27 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.target>21</maven.compiler.target>
-        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>25</maven.compiler.target>
+        <maven.compiler.source>25</maven.compiler.source>
         <junit.version>5.13.2</junit.version>
         <langchain4j.version>1.12.2</langchain4j.version>
         <langchain4j-cdi.version>1.1.0</langchain4j-cdi.version>
+        <langgraph4j.version>1.8.12</langgraph4j.version>
+        <koog.version>0.7.1</koog.version>
+        <jlama.version>0.8.4</jlama.version>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.bsc.langgraph4j</groupId>
+                <artifactId>langgraph4j-bom</artifactId>
+                <version>${langgraph4j.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <dependency>
@@ -82,6 +97,37 @@
             <groupId>org.commonmark</groupId>
             <artifactId>commonmark</artifactId>
             <version>0.24.0</version>
+        </dependency>
+
+        <!-- LangGraph4j - stateful agentic workflows -->
+        <dependency>
+            <groupId>org.bsc.langgraph4j</groupId>
+            <artifactId>langgraph4j-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.bsc.langgraph4j</groupId>
+            <artifactId>langgraph4j-agent-executor</artifactId>
+        </dependency>
+
+        <!-- Koog agent composition framework (brings Kotlin stdlib transitively) -->
+        <dependency>
+            <groupId>ai.koog</groupId>
+            <artifactId>koog-agents-jvm</artifactId>
+            <version>${koog.version}</version>
+        </dependency>
+
+        <!-- Jlama in-JVM LLM inference (Panama Vector API) -->
+        <dependency>
+            <groupId>com.github.tjake</groupId>
+            <artifactId>jlama-core</artifactId>
+            <version>${jlama.version}</version>
+        </dependency>
+
+        <!-- LangChain4j adapter for Jlama (implements ChatModel) -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-jlama</artifactId>
+            <version>${langchain4j.version}-beta22</version>
         </dependency>
 
         <dependency>

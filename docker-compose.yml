@@ -17,6 +17,8 @@ services:
 
   ollama:
     image: ollama/ollama:latest
+    profiles:
+      - ollama
     ports:
       - "11434:11434"
     volumes:
@@ -29,8 +31,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      ollama:
-        condition: service_started
     environment:
       - OLLAMA_BASE_URL=http://ollama:11434
 

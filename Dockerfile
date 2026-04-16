@@ -1,4 +1,4 @@
-FROM eclipse-temurin:21 AS build
+FROM eclipse-temurin:25 AS build
 
 WORKDIR /app
 
@@ -13,7 +13,7 @@ COPY src ./src
 
 RUN ./mvnw clean package -DskipTests
 
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:25-jre
 
 ARG PAYARA_VERSION=7.2026.3
 
@@ -21,6 +21,13 @@ ADD https://nexus.payara.fish/repository/payara-community/fish/payara/extras/pay
 
 COPY --from=build /app/target/ocx.war /opt/payara/deployments/ROOT.war
 
+# Jlama model cache directory (model downloaded on first use)
+RUN mkdir -p /opt/jlama/models
+
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "/opt/payara/payara-micro.jar", "--deploy", "/opt/payara/deployments/ROOT.war", "--nocluster"]
+ENTRYPOINT ["java", \
+    "--add-modules=jdk.incubator.vector", \
+    "-jar", "/opt/payara/payara-micro.jar", \
+    "--deploy", "/opt/payara/deployments/ROOT.war", \
+    "--nocluster"]

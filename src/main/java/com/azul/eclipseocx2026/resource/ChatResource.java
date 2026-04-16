@@ -3,6 +3,7 @@ package com.azul.eclipseocx2026.resource;
 import com.azul.eclipseocx2026.ai.ConferenceChatService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.FormParam;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -24,8 +25,9 @@ public class ChatResource {
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.TEXT_HTML)
-    public String ask(@FormParam("question") String question) {
-        String answer = chatService.ask(question);
+    public String ask(@FormParam("question") String question,
+                      @FormParam("mode") @DefaultValue("declarative") String mode) {
+        String answer = chatService.ask(question, mode);
         return renderAnswer(question, answer);
     }
 

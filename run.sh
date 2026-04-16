@@ -77,6 +77,25 @@ cmd_deploy() {
     echo "  http://localhost:8080"
 }
 
+cmd_jlama() {
+    check_docker
+
+    info "Starting PostgreSQL (no Ollama needed)..."
+    dc up -d postgres
+    wait_for_postgres
+
+    info "Enabling pgvector extension..."
+    dc exec -T postgres psql -U ocx -d ocx -c "CREATE EXTENSION IF NOT EXISTS vector;"
+
+    info "Building and deploying with Jlama in-process inference..."
+    dc up -d app --build
+
+    wait_for_app
+    echo ""
+    ok "http://localhost:8080 (in-process AI, no Ollama)"
+    info "Use the 'In-Process' tab to query with Jlama."
+}
+
 cmd_start() {
     check_docker
     info "Starting services..."
@@ -181,6 +200,7 @@ cmd_help() {
     echo ""
     echo "  Commands:"
     echo "    deploy    Full setup: infra + build + deploy (first run)"
+    echo "    jlama     Deploy with in-process Jlama (no Ollama needed)"
     echo "    start     Start existing services"
     echo "    stop      Stop all services"
     echo "    restart   Stop and redeploy"
@@ -193,6 +213,7 @@ cmd_help() {
 
 case "${1:-help}" in
     deploy)   cmd_deploy   ;;
+    jlama)    cmd_jlama    ;;
     start)    cmd_start    ;;
     stop)     cmd_stop     ;;
     restart)  cmd_restart  ;;
