@@ -46,29 +46,33 @@ public class ConferenceAgent {
     private CompiledGraph<AgentState> workflow;
 
     @PostConstruct
-    void init() throws Exception {
-        Map<String, Channel<?>> schema = Map.of(
-                "query", Channels.base(() -> ""),
-                "classification", Channels.base(() -> ""),
-                "context", Channels.base(() -> ""),
-                "response", Channels.base(() -> "")
-        );
+    void init() {
+        try {
+            Map<String, Channel<?>> schema = Map.of(
+                    "query", Channels.base(() -> ""),
+                    "classification", Channels.base(() -> ""),
+                    "context", Channels.base(() -> ""),
+                    "response", Channels.base(() -> "")
+            );
 
-        this.workflow = new StateGraph<>(schema, AgentState::new)
-                .addNode("classify", AsyncNodeAction.node_async(classifyNode()))
-                .addNode("rag", AsyncNodeAction.node_async(ragNode()))
-                .addNode("direct", AsyncNodeAction.node_async(directNode()))
-                .addNode("respond", AsyncNodeAction.node_async(respondNode()))
-                .addEdge(StateGraph.START, "classify")
-                .addConditionalEdges(
-                        "classify",
-                        AsyncEdgeAction.edge_async(routeByClassification()),
-                        Map.of("rag", "rag", "direct", "direct")
-                )
-                .addEdge("rag", "respond")
-                .addEdge("direct", "respond")
-                .addEdge("respond", StateGraph.END)
-                .compile();
+            this.workflow = new StateGraph<>(schema, AgentState::new)
+                    .addNode("classify", AsyncNodeAction.node_async(classifyNode()))
+                    .addNode("rag", AsyncNodeAction.node_async(ragNode()))
+                    .addNode("direct", AsyncNodeAction.node_async(directNode()))
+                    .addNode("respond", AsyncNodeAction.node_async(respondNode()))
+                    .addEdge(StateGraph.START, "classify")
+                    .addConditionalEdges(
+                            "classify",
+                            AsyncEdgeAction.edge_async(routeByClassification()),
+                            Map.of("rag", "rag", "direct", "direct")
+                    )
+                    .addEdge("rag", "respond")
+                    .addEdge("direct", "respond")
+                    .addEdge("respond", StateGraph.END)
+                    .compile();
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to initialize ConferenceAgent workflow", e);
+        }
     }
 
     public String ask(String question) {

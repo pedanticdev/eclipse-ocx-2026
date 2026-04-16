@@ -15,7 +15,7 @@ RUN ./mvnw clean package -DskipTests
 
 FROM eclipse-temurin:25-jre
 
-ARG PAYARA_VERSION=7.2026.3
+ARG PAYARA_VERSION=7.2026.4
 
 ADD https://nexus.payara.fish/repository/payara-community/fish/payara/extras/payara-micro/${PAYARA_VERSION}/payara-micro-${PAYARA_VERSION}.jar /opt/payara/payara-micro.jar
 
