@@ -365,12 +365,12 @@
             <div style="margin-top: 50px; display: flex; gap: 40px; justify-content: center; font-size: 0.75em;">
                 <div style="text-align: center;">
                     <span class="speaker-badge speaker-luqman">Luqman Saeed</span>
-                    <p class="muted" style="margin-top: 6px;">Jakarta EE Developer, Payara</p>
+                    <p class="muted" style="margin-top: 6px;">Technical Writer, Azul</p>
                 </div>
             </div>
             <p class="muted" style="margin-top: 30px; font-size: 0.65em;">Eclipse OCX 2026 &middot; Brussels</p>
             <aside class="notes">
-                <p>Welcome. I'm Luqman, I work at Payara on the Jakarta EE platform team. This session is about proving that the "boring" enterprise Java stack is the smartest choice for AI workloads. Not because I'm nostalgic. Because it actually works better for production AI than the alternatives everyone keeps recommending.</p>
+                <p>Welcome. I'm Luqman, technical writer at Azul. I spend my days writing about the JVM, Jakarta EE, and enterprise Java, which means I read a lot of code and pay attention to what actually works in production. This session is about proving that the "boring" enterprise Java stack is the smartest choice for AI workloads. Not because I'm nostalgic. Because it actually works better for production AI than the alternatives everyone keeps recommending.</p>
                 <p>The premise: thread pools are crying, vector data doesn't fit traditional databases, and everyone says switch to Python. Sound familiar? I'm going to show you why you don't need to. We'll build a complete RAG microservice using Jakarta Data, virtual threads, and Java cosine similarity. Zero external vector database. Zero Python. Runtime model switching without redeployment.</p>
             </aside>
         </section>
@@ -384,13 +384,13 @@
                 <div class="speaker-avatar" style="background: rgba(56,189,248,0.2); color: var(--accent);">LS</div>
                 <div class="speaker-info">
                     <h4>Luqman Saeed</h4>
-                    <p>Jakarta EE Developer, Payara</p>
-                    <p style="margin-top: 6px; font-size: 0.9em; color: var(--text-light);">Building enterprise Java applications. Writes about Jakarta EE, server-side rendering, and keeping things simple.</p>
+                    <p>Technical Writer, Azul</p>
+                    <p style="margin-top: 6px; font-size: 0.9em; color: var(--text-light);">Writes about the JVM, Jakarta EE, and server-side rendering. Bias toward boring technology that keeps working.</p>
                 </div>
             </div>
             <aside class="notes">
-                <p>Quick intro. I work at Payara on the platform team. My bias: simplicity wins. Server-side rendering over SPAs. Modular monoliths over microservices. And today I'm making the case that standard Jakarta EE specs compose naturally with AI workloads, no special frameworks required.</p>
-                <p>This is my second talk today. The first one, "The Intelligent Monolith," built a RAG system inside a monolithic WAR using PgVector and CDI producers. This talk takes a different angle: Jakarta Data repositories for data access, virtual threads for concurrency, and Java-based cosine similarity instead of a vector database extension.</p>
+                <p>Quick intro. Technical writer at Azul. My day job is explaining Java to developers, which means I spend a lot of time inside real codebases figuring out what actually holds up under production load. My bias: simplicity wins. Server-side rendering over SPAs. Modular monoliths over microservices. And today I'm making the case that standard Jakarta EE specs compose naturally with AI workloads, no special frameworks required.</p>
+                <p>One framing note. There are two credible ways to build this kind of system in Java today. The declarative path uses LangChain4j's @RegisterAIService with CDI extensions and a vector database like PgVector. Fewer lines, less control. The programmatic path, what we're doing here, writes the RAG pipeline by hand with Jakarta Data repositories, Java cosine similarity, and runtime model switching. More lines, full control. We'll compare them directly later.</p>
             </aside>
         </section>
 
@@ -417,14 +417,14 @@
             </div>
             <div class="agenda-item">
                 <span class="agenda-num">5</span>
-                <div><strong>Runtime Switching</strong> &mdash; Swap models without redeploying</div>
+                <div><strong>The Payoff</strong> &mdash; Declarative vs programmatic, runtime model swap</div>
             </div>
             <div class="agenda-item">
                 <span class="agenda-num">6</span>
                 <div><strong>Takeaways</strong> &mdash; What you leave with</div>
             </div>
             <aside class="notes">
-                <p>Six sections. We start with the claim: the boring Java stack might be the smartest choice. Then the stack, five technologies doing one thing each. The live build is the main event: seven incremental steps, each adding one capability. After that, a deep dive on virtual threads and why they're a game-changer for I/O-bound AI workloads. Then runtime model switching, which you literally cannot do with the declarative approach. Close with concrete takeaways.</p>
+                <p>Six sections. We start with the claim: the boring Java stack might be the smartest choice. Then the stack, five technologies doing one thing each. The live build is the main event: seven incremental steps, each adding one capability. After that, a deep dive on virtual threads and why they matter for I/O-bound AI workloads. Then the payoff: the declarative vs programmatic comparison and what the runtime model swap actually buys us. Close with concrete takeaways.</p>
             </aside>
         </section>
 
@@ -497,7 +497,7 @@
                 <p style="font-size: 1.05em;">Virtual threads handle concurrency. Jakarta Data handles persistence. Java handles similarity. <strong>Same spec, new capabilities.</strong></p>
             </div>
             <aside class="notes">
-                <p>Three things you won't need. No separate vector database. Embeddings are stored as byte arrays in a JPA entity, queried through Jakarta Data repositories. Similarity search is 15 lines of Java. No Python. LangChain4j is the Java-native equivalent of Python's LangChain. No thread pool tuning. Virtual threads on Java 21 give you millions of concurrent tasks without configuring a single pool size.</p>
+                <p>Three things you won't need. No separate vector database. Embeddings live as byte arrays on a JPA entity; Jakarta Data repositories load the chunks, and cosine similarity runs in Java on the result. Fifteen lines of math. No Python. LangChain4j is the Java-native equivalent of Python's LangChain. No thread pool tuning. Virtual threads on Java 21 give you millions of concurrent tasks without configuring a single pool size.</p>
                 <p>This is the counter-claim. Your existing Jakarta EE knowledge, the stuff your team already knows, composes naturally with AI workloads. You don't need to learn a new stack. You need to use the one you have correctly.</p>
             </aside>
         </section>
@@ -562,7 +562,37 @@
             <aside class="notes">
                 <p>Two layers. Top row is the request flow: browser to Payara to AiService to Ollama. Bottom row is the data layer: PostgreSQL with Jakarta Data repositories for persistence, VectorSearch for similarity, virtual threads for parallelism.</p>
                 <p>No PgVector extension. No separate vector database. Embeddings are stored as byte arrays in a standard JPA entity. The VectorSearch class loads all chunks from the repository, computes cosine similarity against the query embedding in Java, and returns the top matches. For a few hundred chunks, this is instantaneous. For production scale with millions of vectors, you'd want a vector database. But for conference Q&A and internal tools, this is sufficient.</p>
-                <p>Virtual threads generate all embeddings in parallel at startup. 42 chunks, 42 concurrent HTTP calls to Ollama, each on its own virtual thread. Total time: about 2 seconds.</p>
+                <p>Virtual threads generate all embeddings in parallel at startup. About 50 chunks, all submitted at once, each on its own virtual thread. Ollama processes them in parallel up to its configured slot count. Total time: a couple of seconds on a laptop.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: Early Sanity Demo -->
+        <!-- ============================================================ -->
+        <section>
+            <h2>First: Does It Actually Work?</h2>
+            <div class="box-accent" style="text-align: center; margin: 30px 0;">
+                <p style="font-size: 1.1em;"><strong>30 second sanity check</strong> before we walk through the code.</p>
+                <p class="muted" style="font-size: 0.85em; margin-top: 8px;">localhost:8080 &middot; ask one question &middot; watch the chunks come back</p>
+            </div>
+            <div class="three-column" style="margin-top: 20px;">
+                <div class="box">
+                    <h4>Ask</h4>
+                    <p class="muted" style="font-size: 0.85em;">"Who is speaking about Jakarta Data?"</p>
+                </div>
+                <div class="box">
+                    <h4>Expect</h4>
+                    <p class="muted" style="font-size: 0.85em;">Answer names Otavio Santana. Day 1, 11:30. Jakarta EE track.</p>
+                </div>
+                <div class="box">
+                    <h4>Why</h4>
+                    <p class="muted" style="font-size: 0.85em;">Proves the pipeline before we spend 20 minutes on code.</p>
+                </div>
+            </div>
+            <aside class="notes">
+                <p>Before I walk you through the code, I want to prove the system works. This is a deliberate move. Presenters who leave all demos for the end lose half the room to "I'll just trust you." I'd rather earn trust in thirty seconds and then show you how.</p>
+                <p>I alt-tab to the running app at localhost:8080, type "Who is speaking about Jakarta Data?", and we all watch the response. It should pull Otavio's session out of the seed data. If it doesn't, we know the compose file isn't healthy and we stop walking through code that isn't actually running.</p>
+                <p>Speaker checklist: before the session, pre-warm with one dummy request so the first model load doesn't burn 30 seconds on stage. Keep the app tab open and pinned.</p>
             </aside>
         </section>
 
@@ -650,8 +680,8 @@
                 <p>More code, but <span class="hl">zero magic</span>. Every step is visible, debuggable, and replaceable.</p>
             </div>
             <aside class="notes">
-                <p>This is the deliberate architectural difference from the declarative approach. In my first talk, I used @RegisterAIService, LangChain4j's CDI extension, and PgVector. Four lines of configuration gave you a working RAG pipeline. But that approach has a ceiling: you can't swap models at runtime because the CDI extension creates the service at deployment time.</p>
-                <p>This talk trades convenience for control. We build RAG from scratch: embed the query, find similar chunks, build the prompt, call the model. About 30 more lines of code. But we gain runtime model switching, database-persistent embeddings, and a complete understanding of every moving part. No generated code. No framework-specific annotations beyond standard Jakarta.</p>
+                <p>This is the deliberate architectural choice. The declarative alternative, LangChain4j's @RegisterAIService with its CDI portable extension and something like PgVector, gets you a working RAG pipeline in about four lines of configuration. It is a legitimate option and for many teams it's the right one. But it has a ceiling: the CDI extension wires the AI service at deployment time, so you cannot swap the model at runtime.</p>
+                <p>This talk trades convenience for control. We build RAG from scratch: embed the query, find similar chunks, build the prompt, call the model. About 30 more lines of code. In exchange we get runtime model switching, database-persistent embeddings, and a complete understanding of every moving part. No generated code. No framework-specific annotations beyond standard Jakarta.</p>
             </aside>
         </section>
 
@@ -764,6 +794,58 @@ public interface Talks extends BasicRepository&lt;ConferenceTalk, Long&gt; {
         </section>
 
         <!-- ============================================================ -->
+        <!-- SLIDE: Jakarta Data vs Raw JPA -->
+        <!-- ============================================================ -->
+        <section>
+            <h3>Same Thing, Raw JPA</h3>
+            <div class="two-column">
+                <div class="box-danger">
+                    <h4 style="color: var(--danger);">Raw JPA (what we used to write)</h4>
+                    <pre><code class="language-java">@ApplicationScoped
+public class ChunksDao {
+  @PersistenceContext EntityManager em;
+
+  @Transactional
+  public void save(DocumentChunk c) {
+    em.persist(c);
+  }
+
+  public long countBySource(String s) {
+    return em.createQuery(
+        "SELECT count(c) FROM DocumentChunk c"
+        + " WHERE c.source = :s", Long.class)
+      .setParameter("s", s)
+      .getSingleResult();
+  }
+  // ... plus findAll, findById, delete, merge
+}</code></pre>
+                </div>
+                <div class="box-success">
+                    <h4 style="color: var(--success);">Jakarta Data (what we just wrote)</h4>
+                    <pre><code class="language-java">@Repository
+public interface Chunks
+    extends BasicRepository&lt;DocumentChunk, Long&gt; {
+
+  @Query("select count(this) "
+       + "where source = :source")
+  long countBySource(@Param("source") String s);
+}</code></pre>
+                    <ul style="margin-top: 12px; font-size: 0.8em;">
+                        <li class="success">No class. No EntityManager. No @Transactional.</li>
+                        <li class="success">CRUD comes free from BasicRepository.</li>
+                        <li class="success">JDQL instead of JPQL strings.</li>
+                        <li class="success">Implementation generated at deploy.</li>
+                    </ul>
+                </div>
+            </div>
+            <aside class="notes">
+                <p>Quick receipts before we move on. Left side is what this exact code used to look like with raw JPA: a stateful class holding an EntityManager, a transactional save method, and hand-written JPQL for everything else including basic counts. Twenty-something lines for three operations.</p>
+                <p>Right side is Jakarta Data. One interface, one custom query. Save, delete, findById, findAll, findById(Pageable), all come from BasicRepository. Payara generates the implementation at deployment time. You write about a quarter of the code. Same functionality. Same performance. Same JPA provider underneath.</p>
+                <p>This is the mundane win. Not flashy, not AI-specific. Just fewer lines doing the same job, with less surface area for bugs and less boilerplate for reviewers to skim past.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
         <!-- SLIDE: Step 3 - VectorSearch -->
         <!-- ============================================================ -->
         <section>
@@ -837,7 +919,7 @@ public class AiService {
             </div>
             <aside class="notes">
                 <p>Step four. The AiService is the entire RAG pipeline in one method. First, VectorSearch finds the 5 most similar chunks. Then we format them as context with source labels. Then we build a user message that combines the context and the question. Finally, we call the chat model through ChatModelFactory and return the response text.</p>
-                <p>Compare this to the declarative approach from my first talk: an interface with @SystemMessage, wired by AiServices.builder(). That's 5 lines. This is 25. The tradeoff: 25 lines you can debug, modify, and extend without framework constraints. Want to add a minimum relevance threshold? Add an if statement. Want to log which chunks were retrieved? Add a log statement. Want to change the prompt format at runtime? It's a string template, not an annotation.</p>
+                <p>The declarative alternative is an interface with @SystemMessage and @UserMessage, wired by AiServices.builder(). About 5 lines. This is 25. The tradeoff: 25 lines you can debug, modify, and extend without framework constraints. Want a minimum relevance threshold? Add an if statement. Want to log which chunks were retrieved? Add a log statement. Want to change the prompt format at runtime? It's a string template, not an annotation.</p>
                 <p>And critically: the ChatModelFactory enables runtime model switching, which the declarative approach cannot do.</p>
             </aside>
         </section>
@@ -883,6 +965,9 @@ public class ChatModelFactory {
             .build();
     }
 }</code></pre>
+            <div class="layers" style="margin-top: 10px;">
+                <p><span class="hl">The volatile field is the whole point.</span> We'll see what it buys us in Part 5, and swap models live in the demo.</p>
+            </div>
             <aside class="notes">
                 <p>Step five. Config values injected via @ConfigProperty, not ConfigProvider.getConfig(). The CDI approach is the idiomatic Jakarta EE pattern: type-safe, testable, and the container handles conversion and defaults.</p>
                 <p>The ChatModelFactory holds the current ChatModel in a volatile field. On startup, @PostConstruct reads the default model name from the injected field. The switchModel method creates a new OllamaChatModel and atomically replaces the reference.</p>
@@ -937,7 +1022,7 @@ private void generateEmbeddings(
                 <p>Step six. The DataLoader generates embeddings at startup. Each chunk makes an HTTP call to Ollama's embedding endpoint. Instead of raw JDK Executors, we use Jakarta Concurrency 3.1's @ManagedExecutorDefinition with virtual = true.</p>
                 <p>The configuration is one annotation on one class. Payara creates a ManagedExecutorService backed by virtual threads, registers it in JNDI, and makes it available for CDI injection via the VirtualThreadExecutor qualifier. The DataLoader injects it and calls submit for each chunk.</p>
                 <p>Why this over Executors.newVirtualThreadPerTaskExecutor()? Context propagation. The managed executor automatically propagates Jakarta EE context to virtual threads: transactions, security, classloading. The raw JDK executor drops all of that. For this use case it wouldn't matter since we're not inside a transaction on the worker threads, but it's the idiomatic Jakarta EE pattern and it matters for production code.</p>
-                <p>42 chunks means 42 virtual threads submitted to the managed executor, all running concurrently. When a virtual thread blocks on the HTTP response, the JVM unmounts it from the carrier thread and schedules another. Total time: about 2 seconds.</p>
+                <p>About 50 chunks means about 50 virtual threads submitted to the managed executor, all running concurrently. When a virtual thread blocks on the HTTP response, the JVM unmounts it from the carrier thread and schedules another. Total time: a couple of seconds, bounded by Ollama's parallel embedding slots.</p>
             </aside>
         </section>
 
@@ -1062,6 +1147,38 @@ public class ModelResource {
         </section>
 
         <!-- ============================================================ -->
+        <!-- SLIDE: Live Demo (climax of Live Build) -->
+        <!-- ============================================================ -->
+        <section>
+            <h2>Live Demo</h2>
+            <div class="three-column">
+                <div class="box">
+                    <h4>1. Ask a Question</h4>
+                    <p class="muted" style="font-size: 0.85em;">"What talks are about virtual threads?"</p>
+                    <p class="muted" style="font-size: 0.85em;">AI retrieves relevant chunks, generates answer</p>
+                </div>
+                <div class="box">
+                    <h4>2. Benchmark</h4>
+                    <p class="muted" style="font-size: 0.85em;">Click "20 Questions"</p>
+                    <p class="muted" style="font-size: 0.85em;">20 concurrent virtual thread requests</p>
+                </div>
+                <div class="box">
+                    <h4>3. Switch Model</h4>
+                    <p class="muted" style="font-size: 0.85em;">Switch to mistral mid-session</p>
+                    <p class="muted" style="font-size: 0.85em;">Runtime flexibility in action</p>
+                </div>
+            </div>
+            <div class="layers" style="margin-top: 20px;">
+                <p><span class="hl">Single chat. 20 concurrent requests. Runtime model switch.</span> All in one WAR, no redeployment.</p>
+            </div>
+            <aside class="notes">
+                <p>This is the climax of the build section. We've walked through 18 files of code; now let's watch them run. Three demos in one. First, a single chat question to show the RAG pipeline end to end. Second, the benchmark: click "20 Questions" and watch all 20 virtual threads fire at once. Wall-clock time will be roughly (total questions / Ollama parallel slots) multiplied by average single-request latency, not 20 times average. Java does zero queuing; Ollama does the rest. Third, switch the model mid-session and see the different response style from mistral.</p>
+                <p>After this demo, the rest of the deck is reflection: why virtual threads matter, why the programmatic approach was worth the extra code, and where this approach breaks.</p>
+                <p>Plan B if something fails: dry-run this on my laptop once before the session and memorize rough numbers. If Ollama is cold or the container misbehaves, I can still deliver the point verbally: "In practice on my laptop, 20 questions in roughly X seconds at OLLAMA_NUM_PARALLEL=8."</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
         <!-- PART 4: VIRTUAL THREADS -->
         <!-- ============================================================ -->
         <section>
@@ -1155,69 +1272,10 @@ public class ModelResource {
         </section>
 
         <!-- ============================================================ -->
-        <!-- PART 5: RUNTIME MODEL SWITCHING -->
-        <!-- ============================================================ -->
-        <section>
-            <div class="section-number">05</div>
-            <h2>Runtime Model Switching</h2>
-            <p class="muted">One HTTP POST. No redeployment.</p>
-            <aside class="notes">
-                <p>This is the feature that justifies the programmatic approach. With the declarative @RegisterAIService, the AI service is created once at deployment time. To change the model, you redeploy. With ChatModelFactory, you send one HTTP POST and the next request uses the new model.</p>
-            </aside>
-        </section>
-
-        <!-- ============================================================ -->
-        <!-- SLIDE: Declarative vs Programmatic -->
-        <!-- ============================================================ -->
-        <section>
-            <h2>Declarative vs Programmatic</h2>
-            <div class="two-column">
-                <div class="box-danger">
-                    <h3 style="color: var(--danger);">Declarative (Talk 1)</h3>
-                    <pre><code class="language-java">@SystemMessage("You are an expert...")
-public interface Assistant {
-    String ask(@UserMessage String q);
-}
-
-// Wiring:
-assistant = AiServices.builder(
-    Assistant.class)
-  .chatModel(chatModel)
-  .contentRetriever(retriever)
-  .build();</code></pre>
-                    <ul style="margin-top: 10px; font-size: 0.8em;">
-                        <li>~5 lines of config</li>
-                        <li class="success">Automatic RAG pipeline and content retrieval</li>
-                        <li class="danger">Cannot switch model at runtime</li>
-                    </ul>
-                </div>
-                <div class="box-success">
-                    <h3 style="color: var(--success);">Programmatic (Talk 2)</h3>
-                    <pre><code class="language-java">// AiService asks the factory:
-ChatModel model = modelFactory.getChatModel();
-return model.chat(request).aiMessage().text();
-
-// Switch at runtime:
-modelFactory.switchModel("mistral");
-// Next request uses mistral</code></pre>
-                    <ul style="margin-top: 10px; font-size: 0.8em;">
-                        <li>~25 lines of pipeline code</li>
-                        <li class="success">Runtime switching via volatile field</li>
-                    </ul>
-                </div>
-            </div>
-            <aside class="notes">
-                <p>Side by side. On the left, the declarative approach from Talk 1. An interface with annotations, wired by AiServices.builder(). About 5 lines of configuration. Very clean. But the AI service is immutable after construction. You can't change the model without rebuilding.</p>
-                <p>On the right, the programmatic approach. The AiService asks the ChatModelFactory for the current model on every request. The factory holds the model in a volatile field. When switchModel is called, the factory creates a new OllamaChatModel with the requested model name and atomically replaces the reference. The next request picks up the new model.</p>
-                <p>This is a deliberate tradeoff. 20 more lines of code in exchange for runtime flexibility. For a production system where you might want to A/B test models or fall back from a large model to a small one under load, this matters.</p>
-            </aside>
-        </section>
-
-        <!-- ============================================================ -->
         <!-- SLIDE: Virtual Thread Benchmark -->
         <!-- ============================================================ -->
         <section>
-            <h2>Virtual Thread Benchmark</h2>
+            <h2>Virtual Threads in the Request Path</h2>
             <pre><code class="language-java">@ApplicationScoped
 public class BenchmarkService {
 
@@ -1240,42 +1298,126 @@ public class BenchmarkService {
     }
 }</code></pre>
             <div class="layers" style="margin-top: 10px;">
-                <p><span class="hl">CompletableFuture.supplyAsync</span> with managed virtual thread executor. Each AI request runs on its own virtual thread. All concurrent. No pool sizing.</p>
+                <p><span class="hl">Java never queues.</span> Virtual threads submit all N requests the instant the user clicks. Wall-clock time is bound by <code>OLLAMA_NUM_PARALLEL</code>, not by a Java thread pool.</p>
             </div>
             <aside class="notes">
-                <p>The benchmark service demonstrates virtual threads in the request path, not just at startup. Each question is submitted to the managed executor as a supplyAsync call. The executor creates a virtual thread for each one. CompletableFuture.allOf blocks until all complete, then we collect timing data.</p>
-                <p>The key difference from the DataLoader: there we submitted raw Runnables. Here we use CompletableFuture for composition. supplyAsync returns a future that holds the result, so we can collect all answers without blocking on each one individually. The join at the end is a single barrier.</p>
-                <p>In the live demo, clicking a benchmark button fires 5, 10, or 20 concurrent AI requests. The UI shows wall-clock time, average latency, min/max, and throughput in requests per second. With virtual threads, 20 concurrent requests to Ollama complete in roughly the time of the slowest single request. Without virtual threads, they'd queue on a fixed thread pool.</p>
+                <p>Same virtual thread executor, now in the request path rather than at startup. Each question is submitted to the managed executor as a supplyAsync call. The executor creates a virtual thread for each one. CompletableFuture.allOf blocks until all complete, then we collect timing data.</p>
+                <p>The point I want you to take away: Java contributes zero queuing. All N requests hit Ollama simultaneously. From there, Ollama decides how many run in parallel via OLLAMA_NUM_PARALLEL, which the compose file sets to 8. So 20 questions means 20 virtual threads submitted immediately, 8 in-flight at Ollama, 12 waiting at the inference server, not at the Java layer.</p>
+                <p>That split matters. Without virtual threads, your Java thread pool is the first bottleneck. A FixedThreadPool(20) pins 20MB of stack; a FixedThreadPool(8) forces you to pick a pool size that assumes you know Ollama's capacity ahead of time. Virtual threads let you decouple: scale the submission side for free, scale the inference side with a single env var. Two independent knobs, not one tangled decision.</p>
             </aside>
         </section>
 
         <!-- ============================================================ -->
-        <!-- SLIDE: Live Demo Slide -->
+        <!-- PART 5: THE PAYOFF -->
         <!-- ============================================================ -->
         <section>
-            <h2>Live Demo</h2>
-            <div class="three-column">
-                <div class="box">
-                    <h4>1. Ask a Question</h4>
-                    <p class="muted" style="font-size: 0.85em;">"What talks are about virtual threads?"</p>
-                    <p class="muted" style="font-size: 0.85em;">AI retrieves relevant chunks, generates answer</p>
+            <div class="section-number">05</div>
+            <h2>The Payoff</h2>
+            <p class="muted">Reflecting on the programmatic vs declarative choice.</p>
+            <aside class="notes">
+                <p>You just saw the runtime model switch in the demo. Now a short reflection on why we took the programmatic path instead of the declarative one, and when each is the right call. The answer is not "programmatic wins". The answer is "pick the one that matches your operational needs".</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: Declarative vs Programmatic -->
+        <!-- ============================================================ -->
+        <section>
+            <h2>Declarative vs Programmatic</h2>
+            <div class="two-column">
+                <div class="box-danger">
+                    <h3 style="color: var(--danger);">Declarative</h3>
+                    <pre><code class="language-java">@RegisterAIService
+@SystemMessage("You are an expert...")
+public interface Assistant {
+    String ask(@UserMessage String q);
+}
+
+// Container wires the RAG pipeline
+// at deployment time.</code></pre>
+                    <ul style="margin-top: 10px; font-size: 0.8em;">
+                        <li>~5 lines, zero glue code</li>
+                        <li class="success">Fastest path to a working RAG</li>
+                        <li class="danger">Model baked in at deploy</li>
+                        <li class="danger">No swap without redeploy</li>
+                    </ul>
                 </div>
-                <div class="box">
-                    <h4>2. Benchmark</h4>
-                    <p class="muted" style="font-size: 0.85em;">Click "20 Questions"</p>
-                    <p class="muted" style="font-size: 0.85em;">20 concurrent virtual thread requests</p>
-                </div>
-                <div class="box">
-                    <h4>3. Switch Model</h4>
-                    <p class="muted" style="font-size: 0.85em;">Switch to mistral mid-benchmark</p>
-                    <p class="muted" style="font-size: 0.85em;">Runtime flexibility in action</p>
+                <div class="box-success">
+                    <h3 style="color: var(--success);">Programmatic</h3>
+                    <pre><code class="language-java">// Every request asks the factory:
+ChatModel m = modelFactory.getChatModel();
+return m.chat(request).aiMessage().text();
+
+// Hot-swap the model at runtime:
+modelFactory.switchModel("mistral");
+// Next request uses mistral.</code></pre>
+                    <ul style="margin-top: 10px; font-size: 0.8em;">
+                        <li>~25 lines of explicit pipeline</li>
+                        <li class="success">Runtime swap via volatile field</li>
+                        <li class="success">A/B testing, graceful fallback</li>
+                    </ul>
                 </div>
             </div>
-            <div class="layers" style="margin-top: 20px;">
-                <p><span class="hl">Single chat. 20 concurrent requests. Runtime model switch.</span> All in one WAR, no redeployment.</p>
+            <div class="layers" style="margin-top: 10px;">
+                <p><span class="hl">Both are legitimate.</span> Pick declarative when the model is fixed. Pick programmatic when you need to change models without a redeploy.</p>
             </div>
             <aside class="notes">
-                <p>Live demo. Three demos in one. First, a single chat question to show the RAG pipeline. Second, the benchmark: click "20 Questions" and watch 20 concurrent virtual thread requests hit Ollama simultaneously. The wall-clock time will be close to the slowest single request, not 20x the average. That's virtual threads. Third, switch the model mid-session and see the different response style from mistral.</p>
+                <p>Side by side. On the left, the declarative approach. An interface with @RegisterAIService, wired by LangChain4j's CDI portable extension. About 5 lines. Very clean. But the AI service is immutable after construction; you cannot change the model without rebuilding.</p>
+                <p>On the right, the programmatic approach we just walked through. The AiService asks the ChatModelFactory for the current model on every request. The factory holds the model in a volatile field. When switchModel is called, the factory creates a new OllamaChatModel with the requested name and atomically replaces the reference. The next request picks up the new model.</p>
+                <p>This is a deliberate tradeoff. About twenty extra lines of code in exchange for runtime flexibility. If you know your model at deploy time, declarative is the right answer. If you need A/B testing, graceful fallback under load, or tenant-specific model routing, programmatic pays for itself the first time you use it.</p>
+            </aside>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- SLIDE: Where This Breaks -->
+        <!-- ============================================================ -->
+        <section>
+            <h2>Where This Approach Breaks</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Limit</th>
+                        <th>What fails</th>
+                        <th>What to do</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Millions of vectors</strong></td>
+                        <td>Cosine in Java is O(n) per query</td>
+                        <td>PgVector with an HNSW index, or a dedicated vector DB</td>
+                    </tr>
+                    <tr>
+                        <td><strong>CPU-only inference</strong></td>
+                        <td>gemma3:4b takes seconds per request</td>
+                        <td>Point OLLAMA_BASE_URL at a GPU host, same WAR</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Horizontal scaling</strong></td>
+                        <td>volatile field is per-instance</td>
+                        <td>Push model choice to MicroProfile Config + a config refresh</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Strict session consistency</strong></td>
+                        <td>In-flight request may use previous model</td>
+                        <td>Pin model per session, or quiesce before switching</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Long-running tool use</strong></td>
+                        <td>Single ChatRequest, no function calls shown</td>
+                        <td>LangChain4j tool-use API on top of the same factory</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="layers" style="margin-top: 12px;">
+                <p>Knowing the edges is the difference between a pattern and a fad. <span class="hl">This is the pattern. Here are the edges.</span></p>
+            </div>
+            <aside class="notes">
+                <p>I said at the start that I reject the standard "you need Python" narrative. I'm not going to turn around and tell you this approach scales to everything. Here's where it breaks.</p>
+                <p>Cosine similarity in Java is linear in the number of chunks. A few thousand is fine. Millions is not. When you get there, PgVector with an HNSW index is the smallest step up; same database, same JPA entity, just add the extension and swap VectorSearch for an indexed query.</p>
+                <p>CPU-only inference is slow. gemma3:4b on a laptop CPU is multiple seconds per request. Point OLLAMA_BASE_URL at a GPU host and the same WAR goes ten to fifty times faster. No code change.</p>
+                <p>The volatile-field model switch is per-JVM. If you run five instances behind a load balancer, switching the model on one doesn't touch the others. Production answer: push the current model name through MicroProfile Config with a config source that refreshes on change.</p>
+                <p>And if you need tool use, multi-turn conversations, or structured output, LangChain4j's higher-level API is where you pick it up. It composes cleanly with the factory we built.</p>
             </aside>
         </section>
 
@@ -1295,7 +1437,7 @@ public class BenchmarkService {
         <!-- SLIDE: Why This Matters -->
         <!-- ============================================================ -->
         <section>
-            <h2>Why This Matters</h2>
+            <h2>Who Benefits</h2>
             <div class="two-column">
                 <div class="box-success">
                     <h3 style="color: var(--success);">For Your Team</h3>
@@ -1330,7 +1472,7 @@ public class BenchmarkService {
         <!-- SLIDE: Key Takeaways -->
         <!-- ============================================================ -->
         <section>
-            <h2>Key Takeaways</h2>
+            <h2>Three Numbers to Remember</h2>
             <div style="margin-top: 25px;">
                 <div class="comparison-row">
                     <div class="comparison-item">
@@ -1343,16 +1485,16 @@ public class BenchmarkService {
                     </div>
                     <div class="comparison-item">
                         <div class="metric-large">~2s</div>
-                        <div class="metric-label">Embedding 42 chunks<br>via virtual threads</div>
+                        <div class="metric-label">Embedding ~50 chunks<br>via virtual threads</div>
                     </div>
                 </div>
             </div>
             <div class="layers" style="margin-top: 25px;">
-                <p><strong>Jakarta Data for persistence.</strong> <strong>Virtual threads for concurrency.</strong> <strong>Java for similarity.</strong> Standard specs, new capabilities. The old dog already knows the tricks.</p>
+                <p><strong>Jakarta Data for persistence.</strong> <strong>Virtual threads for concurrency.</strong> <strong>Java for similarity.</strong> Standard specs, new capabilities.</p>
             </div>
             <aside class="notes">
-                <p>Three numbers. Zero external vector databases or Python runtimes. Your embeddings live in PostgreSQL as byte arrays, and your similarity search is 15 lines of Java. One HTTP POST to switch AI models at runtime. The volatile field in ChatModelFactory makes this possible, and you can't do it with the declarative approach. And about 2 seconds to generate embeddings for 42 document chunks using virtual threads. No thread pool configuration. No tuning. Just create and go.</p>
-                <p>The closing line is a callback to the talk synopsis: sometimes the old dog doesn't need new tricks. It already knows them all. Jakarta EE has been the boring, reliable choice for 20 years. With virtual threads, Jakarta Data, and programmatic AI integration, it's also the smart choice for AI workloads.</p>
+                <p>Three numbers. Zero external vector databases or Python runtimes. Your embeddings live in PostgreSQL as byte arrays, and your similarity search is 15 lines of Java. One HTTP POST to switch AI models at runtime. The volatile field in ChatModelFactory makes this possible, and you can't do it with the declarative approach. And about 2 seconds to embed the seed corpus using virtual threads. No thread pool configuration. No tuning. Just submit and go.</p>
+                <p>Three numbers I want them carrying out of the room: zero external vector DBs, one HTTP POST to switch models, two seconds to embed the corpus. Keep the "old dog" line for the very end, not here.</p>
             </aside>
         </section>
 
@@ -1395,7 +1537,9 @@ public class BenchmarkService {
             <div style="margin-top: 50px; font-size: 0.75em;">
                 <div style="text-align: center;">
                     <span class="speaker-badge speaker-luqman">Luqman Saeed</span>
-                    <p class="muted" style="margin-top: 6px;">@luqman_saeed</p>
+                    <p class="muted" style="margin-top: 6px;">
+                        <a href="https://www.linkedin.com/in/ghgeek/" target="_blank" rel="noopener" style="color: var(--accent); text-decoration: none;">linkedin.com/in/ghgeek</a>
+                    </p>
                 </div>
             </div>
             <p class="muted" style="margin-top: 30px; font-size: 0.65em;">
