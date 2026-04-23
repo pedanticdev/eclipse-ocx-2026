@@ -67,7 +67,7 @@ Six Jakarta EE specifications and one MicroProfile spec:
 
 **`AiService`** - Programmatic RAG pipeline. Embed query, find similar chunks, build prompt, call LLM. ~25 lines. Zero framework magic.
 
-**`ChatModelFactory`** - Runtime model switching via `volatile` fields. Switch from gemma3 to mistral with one HTTP POST. No redeployment.
+**`ChatModelFactory`** - Runtime model switching via `volatile` fields. Switch from gemma4 to mistral with one HTTP POST. No redeployment.
 
 **`EmbeddingProducer`** - CDI producer for the `EmbeddingModel` bean.
 
@@ -87,7 +87,7 @@ Six Jakarta EE specifications and one MicroProfile spec:
 
 | Model | Purpose | Size |
 |---|---|---|
-| gemma3:4b | Chat (answer generation) | ~1.6 GB |
+| gemma4:e2b | Chat (answer generation) | ~7.2 GB |
 | mistral | Chat (alternative model) | ~4.1 GB |
 | nomic-embed-text | Embeddings (vector search) | ~274 MB |
 

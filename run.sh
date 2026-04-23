@@ -9,7 +9,7 @@ pull_models() {
     echo "  Pulling AI models (first run only)..."
     $COMPOSE up -d ollama
     sleep 3
-    docker exec $OLLAMA_CONTAINER ollama pull gemma3:4b 2>/dev/null || true
+    docker exec $OLLAMA_CONTAINER ollama pull gemma4:e2b 2>/dev/null || true
     docker exec $OLLAMA_CONTAINER ollama pull mistral 2>/dev/null || true
     docker exec $OLLAMA_CONTAINER ollama pull nomic-embed-text 2>/dev/null || true
 }

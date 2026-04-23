@@ -50,16 +50,36 @@ public class DataLoader {
     public void init(@Observes @Initialized(ApplicationScoped.class) Object event) {
         LOG.info("Starting data ingestion...");
 
-        long existing = chunks.countBySource("jakarta-docs");
-        if (existing > 0) {
-            LOG.info("Chunks already exist (" + existing + "). Skipping ingestion.");
+        long docsExisting = chunks.countBySource("jakarta-docs");
+        long talkChunksExisting = chunks.countBySource("conference-talks");
+        if (docsExisting > 0 && talkChunksExisting > 0) {
+            LOG.info("Chunks already exist (jakarta-docs=" + docsExisting
+                    + ", conference-talks=" + talkChunksExisting + "). Skipping ingestion.");
             return;
         }
 
-        seedConferenceTalks();
+        List<DocumentChunk> docChunks = new ArrayList<>();
 
-        List<DocumentChunk> docChunks = loadJakartaDocs();
-        docChunks.addAll(loadTalkChunks());
+        if (docsExisting == 0) {
+            docChunks.addAll(loadJakartaDocs());
+        } else {
+            LOG.info("Skipping jakarta-docs ingestion (" + docsExisting + " chunks already present).");
+        }
+
+        if (talkChunksExisting == 0) {
+            List<ConferenceTalk> existingTalks = talks.findAll().toList();
+            List<ConferenceTalk> talksList;
+            if (existingTalks.isEmpty()) {
+                talksList = seedConferenceTalks();
+            } else {
+                LOG.info("Conference talks already seeded (" + existingTalks.size()
+                        + " rows). Rebuilding chunks without re-seeding.");
+                talksList = existingTalks;
+            }
+            docChunks.addAll(buildTalkChunks(talksList));
+        } else {
+            LOG.info("Skipping conference-talks ingestion (" + talkChunksExisting + " chunks already present).");
+        }
 
         LOG.info("Generating embeddings for " + docChunks.size() + " chunks using virtual threads...");
         generateEmbeddingsConcurrently(docChunks);
@@ -69,11 +89,12 @@ public class DataLoader {
         LOG.info("Data ingestion complete. " + docChunks.size() + " chunks persisted with embeddings.");
     }
 
-    private void seedConferenceTalks() {
+    private List<ConferenceTalk> seedConferenceTalks() {
+        List<ConferenceTalk> saved = new ArrayList<>();
         try (InputStream is = getClass().getResourceAsStream("/data/talks.json")) {
             if (is == null) {
                 LOG.warning("talks.json not found. Skipping conference talk seeding.");
-                return;
+                return saved;
             }
 
             String json = new String(is.readAllBytes(), StandardCharsets.UTF_8);
@@ -91,12 +112,14 @@ public class DataLoader {
                         obj.getString("timeSlot")
                 );
                 talks.save(talk);
+                saved.add(talk);
             }
 
-            LOG.info("Seeded " + talkArray.size() + " conference talks.");
+            LOG.info("Seeded " + saved.size() + " conference talks.");
         } catch (Exception e) {
             LOG.warning("Failed to seed conference talks: " + e.getMessage());
         }
+        return saved;
     }
 
     private List<DocumentChunk> loadJakartaDocs() {
@@ -121,18 +144,17 @@ public class DataLoader {
         return allChunks;
     }
 
-    private List<DocumentChunk> loadTalkChunks() {
+    private List<DocumentChunk> buildTalkChunks(List<ConferenceTalk> savedTalks) {
         List<DocumentChunk> talkChunks = new ArrayList<>();
-
-        talks.findAll().forEach(talk -> {
+        for (ConferenceTalk talk : savedTalks) {
             String text = "Title: " + talk.getTitle() +
                     "\nSpeaker: " + talk.getSpeakerName() + " (" + talk.getSpeakerCompany() + ")" +
                     "\nTrack: " + talk.getTrack() +
                     "\nTime: " + talk.getTimeSlot() +
                     "\nAbstract: " + talk.getAbstractText();
             talkChunks.add(new DocumentChunk(text, "conference-talks", talk.getTitle()));
-        });
-
+        }
+        LOG.info("Built " + talkChunks.size() + " chunks from conference talks");
         return talkChunks;
     }
 

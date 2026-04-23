@@ -24,7 +24,7 @@ public class AiService {
 
     public String ask(String question) {
         try {
-            List<DocumentChunk> relevantChunks = vectorSearch.search(question, 5);
+            List<DocumentChunk> relevantChunks = vectorSearch.search(question, 10);
 
             if (relevantChunks.isEmpty()) {
                 return "I couldn't find any relevant information for that question. Try asking about conference talks or Jakarta EE topics.";

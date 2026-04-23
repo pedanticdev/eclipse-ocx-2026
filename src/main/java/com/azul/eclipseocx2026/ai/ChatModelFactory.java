@@ -30,7 +30,7 @@ public class ChatModelFactory {
     private int timeoutSeconds;
 
     @Inject
-    @ConfigProperty(name = "ollama.models.available", defaultValue = "gemma3:4b")
+    @ConfigProperty(name = "ollama.models.available", defaultValue = "gemma4:e2b")
     private String availableModels;
 
     private volatile ChatModel chatModel;
