@@ -1,9 +1,6 @@
 package com.azul.eclipseocx2026.ai;
 
 import com.azul.eclipseocx2026.model.DocumentChunk;
-import dev.langchain4j.data.message.UserMessage;
-import dev.langchain4j.model.chat.request.ChatRequest;
-import dev.langchain4j.model.chat.response.ChatResponse;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
@@ -17,7 +14,7 @@ public class AiService {
     private static final Logger LOG = Logger.getLogger(AiService.class.getName());
 
     @Inject
-    private ChatModelFactory modelFactory;
+    private OllamaChat ollamaChat;
 
     @Inject
     private VectorSearch vectorSearch;
@@ -41,12 +38,7 @@ public class AiService {
                     Question: %s
                     """.formatted(context, question);
 
-            ChatResponse response = modelFactory.getChatModel().chat(
-                    ChatRequest.builder()
-                            .messages(UserMessage.from(userMessage))
-                            .build());
-
-            return response.aiMessage().text();
+            return ollamaChat.chat(userMessage);
         } catch (Exception e) {
             LOG.warning("AI request failed for '" + question + "': " + e.getMessage());
             return "Sorry, I couldn't process that question. The AI model may be unavailable. Error: " + e.getMessage();

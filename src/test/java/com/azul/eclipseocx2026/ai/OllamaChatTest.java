@@ -8,34 +8,40 @@ import java.lang.reflect.Field;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class ChatModelFactoryTest {
+class OllamaChatTest {
 
-    ChatModelFactory factory;
+    OllamaChat chat;
 
     @BeforeEach
     void setUp() throws Exception {
-        factory = new ChatModelFactory();
-        setField("defaultModelName", "gemma4:e2b");
+        chat = new OllamaChat();
+        setField("defaultModel", "gemma4:e2b");
         setField("availableModels", "gemma4:e2b,mistral");
-        setField("currentModelName", "gemma4:e2b");
+        setField("currentModel", "gemma4:e2b");
     }
 
     @Test
-    void getCurrentModelName_returnsDefault() {
-        assertEquals("gemma4:e2b", factory.getCurrentModelName());
+    void getCurrentModel_returnsDefault() {
+        assertEquals("gemma4:e2b", chat.getCurrentModel());
+    }
+
+    @Test
+    void switchModel_updatesCurrentModel() {
+        chat.switchModel("mistral");
+        assertEquals("mistral", chat.getCurrentModel());
     }
 
     @Test
     void getAvailableModels_parsesCommaSeparated() {
-        var models = factory.getAvailableModels();
+        var models = chat.getAvailableModels();
         assertEquals(2, models.size());
         assertTrue(models.contains("gemma4:e2b"));
         assertTrue(models.contains("mistral"));
     }
 
     private void setField(String name, Object value) throws Exception {
-        Field field = ChatModelFactory.class.getDeclaredField(name);
+        Field field = OllamaChat.class.getDeclaredField(name);
         field.setAccessible(true);
-        field.set(factory, value);
+        field.set(chat, value);
     }
 }

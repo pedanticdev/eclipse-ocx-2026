@@ -1,13 +1,11 @@
 package com.azul.eclipseocx2026.data;
 
+import com.azul.eclipseocx2026.ai.OllamaEmbeddings;
 import com.azul.eclipseocx2026.config.VirtualThreadExecutor;
 import com.azul.eclipseocx2026.model.ConferenceTalk;
 import com.azul.eclipseocx2026.model.DocumentChunk;
 import com.azul.eclipseocx2026.repository.Chunks;
 import com.azul.eclipseocx2026.repository.Talks;
-import dev.langchain4j.data.embedding.Embedding;
-import dev.langchain4j.model.embedding.EmbeddingModel;
-import dev.langchain4j.model.output.Response;
 import jakarta.enterprise.concurrent.ManagedExecutorService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.Initialized;
@@ -40,7 +38,7 @@ public class DataLoader {
     private Chunks chunks;
 
     @Inject
-    private EmbeddingModel embeddingModel;
+    private OllamaEmbeddings embeddings;
 
     @Inject
     @VirtualThreadExecutor
@@ -161,8 +159,7 @@ public class DataLoader {
     private void generateEmbeddingsConcurrently(List<DocumentChunk> documentChunks) {
         List<Future<Void>> futures = documentChunks.stream()
                 .map(chunk -> executorService.submit(() -> {
-                    Response<Embedding> response = embeddingModel.embed(chunk.getContent());
-                    chunk.setEmbeddingVector(response.content().vector());
+                    chunk.setEmbeddingVector(embeddings.embed(chunk.getContent()));
                     return (Void) null;
                 }))
                 .toList();

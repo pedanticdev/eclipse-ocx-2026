@@ -2,7 +2,6 @@ package com.azul.eclipseocx2026.ai;
 
 import com.azul.eclipseocx2026.model.DocumentChunk;
 import com.azul.eclipseocx2026.repository.Chunks;
-import dev.langchain4j.model.embedding.EmbeddingModel;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
@@ -16,10 +15,10 @@ public class VectorSearch {
     private Chunks chunks;
 
     @Inject
-    private EmbeddingModel embeddingModel;
+    private OllamaEmbeddings embeddings;
 
     public List<DocumentChunk> search(String query, int maxResults) {
-        float[] queryEmbedding = embeddingModel.embed(query).content().vector();
+        float[] queryEmbedding = embeddings.embed(query);
 
         List<DocumentChunk> allChunks = chunks.findAll().toList();
 
