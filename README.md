@@ -119,7 +119,7 @@ Each mode builds on the previous, demonstrating progressive AI adoption within a
 
 | Model | Purpose | Size | Mode |
 |---|---|---|---|
-| gemma4:e2b | Chat (answer generation) | ~1.6 GB | 1-3 via Ollama |
+| gemma4:e2b | Chat (answer generation) | ~7.2 GB | 1-3 via Ollama |
 | nomic-embed-text | Embeddings (vector search) | ~274 MB | 1-3 via Ollama |
 | gemma-2b-it-jlama-Q4 | In-process inference | ~1.4 GB | 4 via Jlama |
 
