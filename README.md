@@ -44,7 +44,7 @@ Browser (HTML + HTMX)
     -> Virtual Threads (concurrent embedding + benchmark)
 ```
 
-Six Jakarta EE specifications and one MicroProfile spec:
+Five Jakarta EE specifications and one MicroProfile spec:
 
 | Specification | Role |
 |---|---|
@@ -88,7 +88,7 @@ Six Jakarta EE specifications and one MicroProfile spec:
 | Model | Purpose | Size |
 |---|---|---|
 | gemma4:e2b | Chat (answer generation) | ~7.2 GB |
-| mistral | Chat (alternative model) | ~4.1 GB |
+| mistral | Chat (alternative model) | ~4.4 GB |
 | nomic-embed-text | Embeddings (vector search) | ~274 MB |
 
 ## Runtime Model Switching
