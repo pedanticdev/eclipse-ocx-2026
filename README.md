@@ -44,7 +44,7 @@ Browser (HTML + HTMX)
     -> Virtual Threads (concurrent embedding + benchmark)
 ```
 
-Six Jakarta EE specifications and one MicroProfile spec:
+Five Jakarta EE specifications and one MicroProfile spec:
 
 | Specification | Role |
 |---|---|
@@ -67,9 +67,9 @@ Six Jakarta EE specifications and one MicroProfile spec:
 
 **`AiService`** - Programmatic RAG pipeline. Embed query, find similar chunks, build prompt, call LLM. ~25 lines. Zero framework magic.
 
-**`ChatModelFactory`** - Runtime model switching via `volatile` fields. Switch from gemma4 to mistral with one HTTP POST. No redeployment.
+**`OllamaChat`** - JDK `HttpClient` + `jakarta.json` client for Ollama's `/api/chat`. Runtime model switching via `volatile` field; swap from gemma4 to mistral with one HTTP POST. No redeployment.
 
-**`EmbeddingProducer`** - CDI producer for the `EmbeddingModel` bean.
+**`OllamaEmbeddings`** - JDK `HttpClient` + `jakarta.json` client for Ollama's `/api/embeddings`. Returns `float[]` vectors directly.
 
 **`BenchmarkService`** - Fires N concurrent AI requests through managed virtual threads. Measures wall-clock time, latency, and throughput.
 
@@ -88,7 +88,7 @@ Six Jakarta EE specifications and one MicroProfile spec:
 | Model | Purpose | Size |
 |---|---|---|
 | gemma4:e2b | Chat (answer generation) | ~7.2 GB |
-| mistral | Chat (alternative model) | ~4.1 GB |
+| mistral | Chat (alternative model) | ~4.4 GB |
 | nomic-embed-text | Embeddings (vector search) | ~274 MB |
 
 ## Runtime Model Switching
@@ -99,7 +99,7 @@ Send one HTTP POST to swap models without redeployment:
 curl -X POST http://localhost:8080/api/models -d "model=mistral"
 ```
 
-The next chat request uses the new model. The `ChatModelFactory` holds the `ChatModel` in a `volatile` field for thread-safe switching.
+The next chat request uses the new model. `OllamaChat` holds the current model name in a `volatile` field for thread-safe switching.
 
 ## Switching to GPU
 
@@ -124,8 +124,8 @@ src/main/java/com/azul/eclipseocx2026/
   ai/
     AiService.java                 Programmatic RAG pipeline
     BenchmarkService.java          Concurrent AI request benchmarking
-    ChatModelFactory.java          Runtime model switching
-    EmbeddingProducer.java         CDI producer for EmbeddingModel
+    OllamaChat.java                JDK HttpClient + jakarta.json chat client (runtime model switching)
+    OllamaEmbeddings.java          JDK HttpClient + jakarta.json embeddings client
     VectorSearch.java              Java cosine similarity
   data/
     DataLoader.java                Startup seeding + virtual thread embedding
@@ -153,7 +153,7 @@ src/main/webapp/
 | Not used | Instead |
 |---|---|
 | PgVector / Pinecone / Weaviate | `byte[]` in JPA entity + Java cosine similarity |
-| `@RegisterAIService` (declarative) | Programmatic `AiService` with `ChatModelFactory` |
+| `@RegisterAIService` (declarative) | Programmatic `AiService` with `OllamaChat` |
 | `langchain4j-cdi-ext` | Standard CDI producers |
 | `EmbeddingStore` | `VectorSearch` class (15 lines) |
 | Raw `Executors.newVirtualThreadPerTaskExecutor()` | `@ManagedExecutorDefinition(virtual=true)` |
